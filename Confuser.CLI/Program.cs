@@ -88,6 +88,9 @@ namespace Confuser.CLI {
 
 						foreach (var rule in templateProj.Rules)
 							proj.Rules.Add(rule);
+						// Propagate seed from template for deterministic reproducibility
+						proj.Seed = templateProj.Seed;
+						proj.Debug = templateProj.Debug;
 					}
 
 					// Generate a ConfuserProject for input modules

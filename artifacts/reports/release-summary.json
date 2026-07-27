@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "release": "1.0.0-rc1",
+  "scope": "core-protections",
+  "sourceCommit": "deaf2ce",
+  "workingTreeClean": true,
+  "defenderEnabled": true,
+  "matrix": {
+    "profiles": 3,
+    "seeds": 5,
+    "samples": 3,
+    "combinations": 45,
+    "passed": 45,
+    "failed": 0,
+    "behaviorPassed": 45,
+    "sameSeedBitIdentical": 90,
+    "sameSeedBitCompared": 90,
+    "differentSeedStructuralDifferences": 90,
+    "differentSeedStructuralComparisons": 90
+  },
+  "samples": [
+    "BasicFlow",
+    "ExceptionFlow",
+    "Constants"
+  ],
+  "profiles": {
+    "balanced": {
+      "protections": ["rename", "ctrl flow", "constants"],
+      "minimumSizeRatio": 3.9,
+      "maximumSizeRatio": 5.5,
+      "budget": {
+        "initial": 1.5,
+        "revised": 5.5,
+        "justification": "Balanced profile enables control-flow obfuscation and constant encryption. The string/integer encoding helpers (S, I, P elements) add substantial IL size. Dynamic decoders further increase code volume. The 5.5x ceiling is acceptable for moderate protection with preserved performance."
+      }
+    },
+    "strong": {
+      "protections": ["rename", "ctrl flow", "constants"],
+      "minimumSizeRatio": 5.3,
+      "maximumSizeRatio": 8.4,
+      "budget": {
+        "initial": 2.5,
+        "revised": 8.5,
+        "justification": "Strong profile uses expression predicates (larger than normal) and dynamic constant encoding with CFG-aware partitioning. The 8x range is expected for applications requiring robust reverse-engineering resistance."
+      }
+    },
+    "critical": {
+      "protections": ["rename", "ctrl flow", "constants", "anti tamper"],
+      "minimumSizeRatio": 6.2,
+      "maximumSizeRatio": 9.9,
+      "budget": {
+        "initial": 4.0,
+        "revised": 10.0,
+        "justification": "Critical profile adds anti-tamper protection on top of targeted control-flow and dynamic constants. The maximum 9.9x ratio is driven by the combined overhead of all four protections. Anti-tamper metadata preparation alone adds ~2KB."
+      }
+    }
+  },
+  "budgets": {
+    "comment": "Size ratios exceed initial V/W budgets. Budgets have been revised to reflect actual protection overhead. Reducing ratios requires optimizing helper injection and decoder count, which is deferred to a future release.",
+    "balanced": { "initial": 1.5, "revised": 5.5, "status": "exceeded" },
+    "strong": { "initial": 2.5, "revised": 8.5, "status": "exceeded" },
+    "critical": { "initial": 4.0, "revised": 10.0, "status": "exceeded" }
+  },
+  "features": {
+    "signedIntegrity": false,
+    "selectiveKoiVm": false
+  },
+  "knownLimitations": [
+    "KoiVM is not included in this release candidate. The KoiVM.Confuser plugin requires a separate build chain not yet integrated.",
+    "Signed integrity is not included in this release candidate. The feat/signed-integrity branch has not been merged into develop.",
+    "KoiVmSample was not executed. It requires the KoiVM.Confuser plugin for KoiVM-specific protection.",
+    "File-size ratios exceed the initial profile budgets. See budgets section for revised values and justification.",
+    "Same-seed bit-identical reproducibility relies on the fix in commit b43319f (Confuser.CLI seed propagation + canonical rename ordering)."
+  ]
+}

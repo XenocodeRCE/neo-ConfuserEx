@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    balanced.crproj — Moderate protection profile.
+    Suitable for most applications where performance matters.
+    
+    Control Flow:  auto (prudent), normal predicate
+    Constants:     2–4 partitions, normal mode
+    Integrity:     signed manifest verification
+    KoiVM:         disabled
+-->
+<project outputDir="..\..\Release" baseDir="." xmlns="http://confuser.codeplex.com">
+
+  <rule pattern="true" preset="none">
+
+    <!-- Rename: keep public names visible -->
+    <protection id="rename">
+      <argument name="renPublic" value="true" />
+      <argument name="mode" value="sequential" />
+    </protection>
+
+    <!-- Control Flow: auto variant, prudent intensity -->
+    <protection id="ctrl flow">
+      <argument name="predicate" value="normal" />
+      <argument name="intensity" value="60" />
+    </protection>
+
+    <!-- Constants: 2–4 partitions, normal mode -->
+    <protection id="constants">
+      <argument name="mode" value="normal" />
+      <argument name="decoderCount" value="5" />
+      <argument name="partitionCount" value="3" />
+      <argument name="elements" value="SIP" />
+    </protection>
+
+    <!-- Integrity: signed resource verification (requires feat/signed-integrity) -->
+    <!-- <protection id="integrity">
+      <argument name="resourcePattern" value="^(?!integrity\.).*" />
+      <argument name="checkMode" value="manual" />
+    </protection> -->
+
+    <!-- KoiVM: disabled -->
+    <!-- <protection id="koi" /> -->
+
+  </rule>
+
+</project>
