@@ -32,11 +32,11 @@
       <argument name="elements" value="SIP" />
     </protection>
 
-    <!-- Integrity: signed resource verification -->
-    <protection id="integrity">
+    <!-- Integrity: signed resource verification (requires feat/signed-integrity) -->
+    <!-- <protection id="integrity">
       <argument name="resourcePattern" value="^(?!integrity\.).*" />
       <argument name="checkMode" value="manual" />
-    </protection>
+    </protection> -->
 
     <!-- KoiVM: disabled -->
     <!-- <protection id="koi" /> -->

@@ -33,20 +33,20 @@
       <argument name="cfg" value="true" />
     </protection>
 
-    <!-- Integrity: signed resource verification, startup check -->
-    <protection id="integrity">
+    <!-- Integrity: signed resource verification, startup check (requires feat/signed-integrity) -->
+    <!-- <protection id="integrity">
       <argument name="resourcePattern" value="^(?!integrity\.).*" />
       <argument name="checkMode" value="startup" />
-    </protection>
+    </protection> -->
 
-    <!-- KoiVM: explicit mode, prudent profile -->
-    <protection id="koi">
+    <!-- KoiVM: explicit mode (requires KoiVM.Confuser plugin — NOT BUILT on koi-integration) -->
+    <!-- <protection id="koi">
       <argument name="selection" value="Explicit" />
       <argument name="maximumInstructions" value="300" />
       <argument name="allowExceptionHandlers" value="false" />
       <argument name="allowStateMachines" value="false" />
       <argument name="export" value="true" />
-    </protection>
+    </protection> -->
 
   </rule>
 
