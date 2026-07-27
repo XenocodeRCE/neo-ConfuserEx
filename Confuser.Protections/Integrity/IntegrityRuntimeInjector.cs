@@ -60,6 +60,13 @@ namespace Confuser.Protections.Integrity
             name.MarkHelper(ctx.VerifyMethod, marker, parent);
             ExcludeFromAll(context, ctx.VerifyMethod, parent);
 
+            // Mark all static constructors in the injected type hierarchy
+            foreach (var member in members)
+            {
+                if (member is MethodDef m && m.IsStaticConstructor)
+                    marker.Mark(m, parent);
+            }
+
             // Embed public key resource with fixed name
             var publicKeyResourceName = "integrity.pk";
             foreach (var res in module.Resources)

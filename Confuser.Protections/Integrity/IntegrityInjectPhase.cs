@@ -70,6 +70,12 @@ namespace Confuser.Protections.Integrity
                 return;
             }
 
+            // Mark the module's .cctor as handled by integrity so the marker
+            // service doesn't flag it as unmarked.
+            var moduleCctor = module.GlobalType.FindStaticConstructor();
+            if (moduleCctor != null)
+                marker.Mark(moduleCctor, (IntegrityProtection)Parent);
+
             // Read checkMode
             string checkMode = parameters.GetParameter(
                 context, module, "checkMode", "manual");

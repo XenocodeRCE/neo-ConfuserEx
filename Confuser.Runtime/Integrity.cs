@@ -252,7 +252,11 @@ namespace Confuser.Runtime
 
         static class Sha256
         {
-            static readonly uint[] K = {
+            static readonly uint[] K;
+
+            static Sha256()
+            {
+                K = new uint[] {
                 0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
                 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
                 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -269,7 +273,8 @@ namespace Confuser.Runtime
                 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
                 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
                 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-            };
+                };
+            }
 
             public static byte[] ComputeHash(byte[] data)
             {
