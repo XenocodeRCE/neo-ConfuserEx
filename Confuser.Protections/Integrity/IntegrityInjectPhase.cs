@@ -19,6 +19,13 @@ namespace Confuser.Protections.Integrity
         {
             var module = context.CurrentModule;
 
+            // Skip if integrity is not configured for this module
+            if (!((IntegrityProtection)Parent).IsActiveFor(context, module))
+            {
+                context.Logger.Debug("Integrity not active for this module, skipping injection.");
+                return;
+            }
+
             // Load signer (fails early if env var is missing)
             IBuildSigningService signer;
             try

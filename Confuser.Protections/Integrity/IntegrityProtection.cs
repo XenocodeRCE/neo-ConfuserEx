@@ -29,6 +29,13 @@ namespace Confuser.Protections.Integrity
 
         protected override void Initialize(ConfuserContext context) { }
 
+        /// <summary>Checks whether this protection is active for the given module.</summary>
+        internal bool IsActiveFor(ConfuserContext context, dnlib.DotNet.ModuleDef module)
+        {
+            var parameters = ProtectionParameters.GetParameters(context, module);
+            return parameters != null && parameters.ContainsKey(this);
+        }
+
         protected override void PopulatePipeline(ProtectionPipeline pipeline)
         {
             pipeline.InsertPreStage(

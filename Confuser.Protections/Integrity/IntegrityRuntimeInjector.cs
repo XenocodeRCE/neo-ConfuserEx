@@ -25,6 +25,18 @@ namespace Confuser.Protections.Integrity
             var runtimeType = rt.GetRuntimeType("Confuser.Runtime.Integrity");
             var members = InjectHelper.Inject(runtimeType, module.GlobalType, module);
 
+            // Mark all injected types and methods as integrity helpers so downstream
+            // phases (KoiVM, rename, etc.) can exclude them.
+            foreach (var member in members)
+            {
+                context.Annotations.Set(member, ProtectionAnnotations.InjectedHelper, true);
+                if (member is MethodDef method)
+                {
+                    if (method.DeclaringType != null)
+                        context.Annotations.Set(method.DeclaringType, ProtectionAnnotations.InjectedHelper, true);
+                }
+            }
+
             foreach (var member in members)
             {
                 if (member.Name == "Verify")
