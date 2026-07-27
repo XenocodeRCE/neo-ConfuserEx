@@ -34,7 +34,8 @@ namespace Confuser.Protections.Integrity
 
                 // Mark helpers and exclude from all transformations
                 name.MarkHelper(member, marker, parent);
-                ExcludeFromAll(context, (MethodDef)member, parent);
+                if (member is MethodDef method)
+                    ExcludeFromAll(context, method, parent);
             }
 
             if (ctx.VerifyMethod == null)

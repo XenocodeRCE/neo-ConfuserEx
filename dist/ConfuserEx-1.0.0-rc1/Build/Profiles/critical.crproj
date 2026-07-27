@@ -36,11 +36,11 @@
       <argument name="cfg" value="true" />
     </protection>
 
-    <!-- Integrity: signed manifest, enforced at startup -->
-    <protection id="integrity">
+    <!-- Integrity: signed manifest, enforced at startup (requires feat/signed-integrity) -->
+    <!-- <protection id="integrity">
       <argument name="resourcePattern" value="^(?!integrity\.).*" />
       <argument name="checkMode" value="startup" />
-    </protection>
+    </protection> -->
 
     <!-- KoiVM: explicit list (requires KoiVM.Confuser plugin — NOT BUILT on koi-integration) -->
     <!-- <protection id="koi">
