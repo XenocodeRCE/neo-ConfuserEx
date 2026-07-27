@@ -27,8 +27,15 @@ namespace Confuser.Renamer {
 				context.CheckCancellation();
 			}
 
-			var targets = parameters.Targets.ToList();
-			service.GetRandom().Shuffle(targets);
+			// Sort candidates by canonical identity before shuffle to ensure
+			// deterministic ordering regardless of enumeration order.
+			// Uses isolated random generator (per scope + purpose) to avoid
+			// shared-state dependencies with other rename operations.
+			var targets = parameters.Targets
+				.OrderBy(d => d.FullName, StringComparer.Ordinal)
+				.ToList();
+			var shuffleRandom = service.GetShuffleRandom();
+			shuffleRandom.Shuffle(targets);
 			var pdbDocs = new HashSet<string>();
 			foreach (IDnlibDef def in targets.WithProgress(context.Logger)) {
 				if (def is ModuleDef && parameters.GetParameter(context, def, "rickroll", false))

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Confuser.Core;
 
 namespace Confuser.Renamer {
@@ -66,8 +67,10 @@ namespace Confuser.Renamer {
 				if (!Directory.Exists(dir))
 					Directory.CreateDirectory(dir);
 
+				// Sort by key deterministically — Dictionary enumeration order is not guaranteed.
+				// This ensures symbols.map is identical across runs with the same seed.
 				using (var writer = new StreamWriter(File.OpenWrite(path))) {
-					foreach (var entry in map)
+					foreach (var entry in map.OrderBy(kvp => kvp.Key, StringComparer.Ordinal))
 						writer.WriteLine("{0}\t{1}", entry.Key, entry.Value);
 				}
 			}

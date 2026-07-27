@@ -207,7 +207,7 @@ namespace Confuser.Core.Services {
 		public RandomGenerator GetRandomGenerator(string id) {
 			if (string.IsNullOrEmpty(id))
 				throw new ArgumentNullException("id");
-			byte[] newSeed = seed;
+			byte[] newSeed = (byte[])seed.Clone();
 			byte[] idHash = Utils.SHA256(Encoding.UTF8.GetBytes(id));
 			for (int i = 0; i < 32; i++)
 				newSeed[i] ^= idHash[i];
