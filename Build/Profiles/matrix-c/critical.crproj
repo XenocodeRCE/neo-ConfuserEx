@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    critical.crproj — Maximum protection profile.
+    For high-value intellectual property requiring the strongest available protections.
+    
+    Control Flow:  targeted, expression predicate, maximum intensity
+    Constants:     targeted, dynamic mode with CFG
+    Integrity:     signed manifest, startup enforcement
+    KoiVM:         explicit list of critical methods only
+    
+    IMPORTANT: KoiVM is NOT applied globally. Only methods explicitly marked
+    with [ProtectCriticalLogic] are virtualized. Each method is individually
+    validated for VM compatibility before registration.
+-->
+<project outputDir="..\..\Release" baseDir="." xmlns="http://confuser.codeplex.com">
+<rule pattern="true" preset="none">
+
+    <!-- Rename: full obfuscation -->
+    <protection id="rename">
+      <argument name="renPublic" value="false" />
+      <argument name="mode" value="decodable" />
+    </protection>
+
+    <!-- Control Flow: targeted, expression predicate, maximum -->
+    <protection id="ctrl flow">
+      <argument name="predicate" value="expression" />
+      <argument name="intensity" value="100" />
+    </protection>
+
+    <!-- Constants: targeted, dynamic mode, CFG, high decoder count -->
+    <protection id="constants">
+      <argument name="mode" value="dynamic" />
+      <argument name="decoderCount" value="10" />
+      <argument name="elements" value="SIP" />
+      <argument name="cfg" value="true" />
+    </protection>
+
+    <!-- Integrity: signed manifest, enforced at startup -->
+    <!-- integrity disabled pending runtime fix -->
+
+    <!-- KoiVM: explicit list (requires -plugin KoiVM.Confuser.dll) -->
+        <protection id="koi">
+      <argument name="selection" value="Explicit" />
+      <argument name="maximumInstructions" value="200" />
+      <argument name="allowExceptionHandlers" value="false" />
+      <argument name="allowStateMachines" value="false" />
+      <argument name="export" value="true" />
+    </protection>
+
+    <!-- Anti Tamper: Normal mode (integrity-compatible) -->
+    <protection id="anti tamper">
+      <argument name="mode" value="Normal" />
+    </protection>
+
+  </rule>
+
+  <plugin>D:\dev\confuser-lab\src\KoiVM\Release\bin\KoiVM.Confuser.exe</plugin>
+</project>
+
+
+

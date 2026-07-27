@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    strong.crproj — Strong protection profile.
+    For applications requiring robust reverse-engineering resistance.
+    
+    Control Flow:  auto, expression predicate, high intensity
+    Constants:     4–8 partitions, dynamic mode
+    Integrity:     signed manifest verification
+    KoiVM:         explicit selective virtualization
+-->
+<project outputDir="..\..\Release" baseDir="." xmlns="http://confuser.codeplex.com">
+<rule pattern="true" preset="none">
+
+    <!-- Rename: sequential, hide public -->
+    <protection id="rename">
+      <argument name="renPublic" value="false" />
+      <argument name="mode" value="sequential" />
+    </protection>
+
+    <!-- Control Flow: auto variant, expression predicate, high intensity -->
+    <protection id="ctrl flow">
+      <argument name="predicate" value="expression" />
+      <argument name="intensity" value="80" />
+    </protection>
+
+    <!-- Constants: 4–8 partitions, dynamic mode with CFG -->
+    <protection id="constants">
+      <argument name="mode" value="dynamic" />
+      <argument name="decoderCount" value="8" />
+      <argument name="partitionCount" value="6" />
+      <argument name="elements" value="SIP" />
+      <argument name="cfg" value="true" />
+    </protection>
+
+    <!-- Integrity: signed resource verification, startup check -->
+        <protection id="integrity">
+      <argument name="resourcePattern" value="^(?!integrity\.).*" />
+      <argument name="checkMode" value="manual" />
+    </protection>
+
+    <!-- KoiVM: explicit mode (requires -plugin KoiVM.Confuser.dll) -->
+        <protection id="koi">
+      <argument name="selection" value="Explicit" />
+      <argument name="maximumInstructions" value="300" />
+      <argument name="allowExceptionHandlers" value="false" />
+      <argument name="allowStateMachines" value="false" />
+      <argument name="export" value="true" />
+    </protection>
+
+  </rule>
+
+  <plugin>D:\dev\confuser-lab\src\KoiVM\Release\bin\KoiVM.Confuser.exe</plugin>
+</project>
+
+
+
