@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "description": "V1 matrix seeds — 5 deterministic seeds for the full 3×5×corpus reproducibility matrix. Each seed produces a different protection outcome. NOT for production use.",
+  "seeds": [
+    {
+      "id": "v1-alpha",
+      "value": "v1-deterministic-seed-001-alpha-wolf-2026-07-27",
+      "label": "Alpha (baseline)"
+    },
+    {
+      "id": "v1-bravo",
+      "value": "v1-deterministic-seed-002-bravo-bear-2026-07-27",
+      "label": "Bravo"
+    },
+    {
+      "id": "v1-charlie",
+      "value": "v1-deterministic-seed-003-charlie-fox-2026-07-27",
+      "label": "Charlie"
+    },
+    {
+      "id": "v1-delta",
+      "value": "v1-deterministic-seed-004-delta-hawk-2026-07-27",
+      "label": "Delta"
+    },
+    {
+      "id": "v1-echo",
+      "value": "v1-deterministic-seed-005-echo-lynx-2026-07-27",
+      "label": "Echo"
+    }
+  ],
+  "warning": "THESE SEEDS ARE PUBLIC. They exist to validate reproducibility, not to provide secrecy. Production protection must use a separate, secret seed."
+}
