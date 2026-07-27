@@ -2,9 +2,19 @@
   "schemaVersion": 1,
   "release": "1.0.0-rc1",
   "scope": "core-protections",
-  "sourceCommit": "deaf2ce",
+  "sourceCommit": "ae9f25d37bbf40f8c906e93e4f9cc19109c76418",
   "workingTreeClean": true,
-  "defenderEnabled": true,
+  "defender": {
+    "antivirusEnabled": true,
+    "realTimeProtectionEnabled": false,
+    "note": "Real-time protection was OFF during final matrix. Recommend enabling before production deployment."
+  },
+  "tools": {
+    "msbuild": "17.13.19",
+    "dotnetSdk": "9.0.201",
+    "dnlib": "1.5.0.1500",
+    "targetFramework": "net461"
+  },
   "matrix": {
     "profiles": 3,
     "seeds": 5,
