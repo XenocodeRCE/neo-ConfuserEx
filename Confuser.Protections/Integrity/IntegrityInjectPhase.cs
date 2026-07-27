@@ -70,11 +70,15 @@ namespace Confuser.Protections.Integrity
                 return;
             }
 
-            // Mark the module's .cctor as handled by integrity so the marker
-            // service doesn't flag it as unmarked.
+            // Ensure the module .cctor has ProtectionParameters (it may have
+            // been created by the runtime injection, after the marking phase).
             var moduleCctor = module.GlobalType.FindStaticConstructor();
             if (moduleCctor != null)
+            {
+                if (ProtectionParameters.GetParameters(context, moduleCctor) == null)
+                    ProtectionParameters.SetParameters(context, moduleCctor, new ProtectionSettings());
                 marker.Mark(moduleCctor, (IntegrityProtection)Parent);
+            }
 
             // Read checkMode
             string checkMode = parameters.GetParameter(

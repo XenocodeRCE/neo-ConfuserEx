@@ -12,7 +12,7 @@ namespace Confuser.Protections.Integrity
 {
     internal static class IntegrityRuntimeInjector
     {
-        public static void Inject(
+        public static IEnumerable<IDnlibDef> Inject(
             ConfuserContext context,
             IntegrityProtection parent,
             IntegrityContext ctx,
@@ -36,6 +36,14 @@ namespace Confuser.Protections.Integrity
                         context.Annotations.Set(method.DeclaringType, ProtectionAnnotations.InjectedHelper, true);
                 }
             }
+
+            // Ensure every injected definition has ProtectionParameters so the
+            // pipeline Filter() method won't throw "not marked for obfuscation".
+            // Empty ProtectionSettings is intentional: it makes the definition
+            // known to the pipeline while excluding it from rename, ctrl flow,
+            // constants, and KoiVM.
+            foreach (var member in members)
+                EnsureProtectionParameters(context, member);
 
             foreach (var member in members)
             {
@@ -95,11 +103,20 @@ namespace Confuser.Protections.Integrity
             }
 
             MutationHelper.InjectKeys(ctx.VerifyMethod, keyIds, keys);
+
+            return members;
+        }
+
+        static void EnsureProtectionParameters(ConfuserContext context, IDnlibDef def)
+        {
+            if (ProtectionParameters.GetParameters(context, def) == null)
+                ProtectionParameters.SetParameters(context, def, new ProtectionSettings());
         }
 
         static void ExcludeFromAll(ConfuserContext context, MethodDef method, IntegrityProtection parent)
         {
             // Exclude from rename, constants, ctrl flow, and integrity itself
+            EnsureProtectionParameters(context, method);
             var pp = ProtectionParameters.GetParameters(context, method);
             pp.Remove(parent); // integrity
         }
