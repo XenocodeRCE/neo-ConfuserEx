@@ -324,6 +324,16 @@ namespace Confuser.Renamer {
 			return random;
 		}
 
+		/// <summary>
+		///     Returns a fresh, isolated random generator for rename ordering.
+		///     Uses a stable identity (protection ID + purpose) to ensure
+		///     deterministic shuffle order across runs with the same seed.
+		/// </summary>
+		public RandomGenerator GetShuffleRandom() {
+			return context.Registry.GetService<IRandomService>()
+				.GetRandomGenerator(NameProtection._FullId + ":rename-order");
+		}
+
 		public IList<INameReference> GetReferences(object obj) {
 			return context.Annotations.GetLazy(obj, ReferencesKey, key => new List<INameReference>());
 		}
