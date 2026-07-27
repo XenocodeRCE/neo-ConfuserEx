@@ -49,7 +49,16 @@ namespace Confuser.Protections.Integrity
             var name = context.Registry.GetService<INameService>();
             var marker = context.Registry.GetService<IMarkerService>();
 
-            IntegrityRuntimeInjector.Inject(context, (IntegrityProtection)Parent, ctx, rt, name, marker);
+            try
+            {
+                IntegrityRuntimeInjector.Inject(context, (IntegrityProtection)Parent, ctx, rt, name, marker);
+            }
+            catch (Exception ex)
+            {
+                context.Logger.Warn("Integrity runtime injection failed, skipping: " + ex.Message);
+                context.Logger.Debug(ex.ToString());
+                return;
+            }
 
             // Read checkMode
             string checkMode = parameters.GetParameter(

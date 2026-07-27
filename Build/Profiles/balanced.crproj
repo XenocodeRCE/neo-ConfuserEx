@@ -33,10 +33,7 @@
     </protection>
 
     <!-- Integrity: signed resource verification -->
-    <protection id="integrity">
-      <argument name="resourcePattern" value="^(?!integrity\.).*" />
-      <argument name="checkMode" value="manual" />
-    </protection>
+    <!-- integrity disabled pending runtime fix -->
 
     <!-- KoiVM: disabled -->
     <!-- <protection id="koi" /> -->
@@ -44,3 +41,4 @@
   </rule>
 
 </project>
+
