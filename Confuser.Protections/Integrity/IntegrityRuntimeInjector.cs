@@ -44,8 +44,10 @@ namespace Confuser.Protections.Integrity
                 if (member.Name == "Initialize")
                     continue; // startup method, we'll call Verify from it
 
-                // Mark helpers and exclude from all transformations
+                // Mark helpers via INameService for rename exclusion
                 name.MarkHelper(member, marker, parent);
+                // Mark via IMarkerService so ConfuserEx knows these definitions belong to integrity
+                marker.Mark(member, parent);
                 if (member is MethodDef method)
                     ExcludeFromAll(context, method, parent);
             }
