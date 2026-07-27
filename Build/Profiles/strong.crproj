@@ -36,14 +36,14 @@
     <!-- Integrity: signed resource verification, startup check -->
     <!-- integrity disabled pending runtime fix -->
 
-    <!-- KoiVM: explicit mode, prudent profile -->
-    <protection id="koi">
+    <!-- KoiVM: explicit mode (requires -plugin KoiVM.Confuser.dll) -->
+    <!-- <protection id="koi">
       <argument name="selection" value="Explicit" />
       <argument name="maximumInstructions" value="300" />
       <argument name="allowExceptionHandlers" value="false" />
       <argument name="allowStateMachines" value="false" />
       <argument name="export" value="true" />
-    </protection>
+    </protection> -->
 
   </rule>
 

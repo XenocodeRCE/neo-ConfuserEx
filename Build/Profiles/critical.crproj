@@ -39,14 +39,14 @@
     <!-- Integrity: signed manifest, enforced at startup -->
     <!-- integrity disabled pending runtime fix -->
 
-    <!-- KoiVM: explicit list — only [ProtectCriticalLogic] methods -->
-    <protection id="koi">
+    <!-- KoiVM: explicit list (requires -plugin KoiVM.Confuser.dll) -->
+    <!-- <protection id="koi">
       <argument name="selection" value="Explicit" />
       <argument name="maximumInstructions" value="200" />
       <argument name="allowExceptionHandlers" value="false" />
       <argument name="allowStateMachines" value="false" />
       <argument name="export" value="true" />
-    </protection>
+    </protection> -->
 
     <!-- Anti Tamper: Normal mode (integrity-compatible) -->
     <protection id="anti tamper">
