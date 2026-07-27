@@ -1,6 +1,5 @@
 Neo ConfuserEx
---------
-
+========
 
 Neo ConfuserEx is the successor of [ConfuserEx](https://yck1509.github.io/ConfuserEx/) project, an open source C# obfuscator which uses its own fork of [dnlib](https://github.com/0xd4d/dnlib/) for assembly manipulation. Neo ConfuserEx handles most of the dotnet app, supports all elligible .NET Frameworks and provide decent obfuscation on your file. If you have any questions or issues please let me know [there](https://github.com/XenocodeRCE/neo-ConfuserEx/issues). You can download latest official release [here](https://github.com/XenocodeRCE/neo-ConfuserEx/releases) and latest build [here](https://ci.appveyor.com/project/XenocodeRCE/neo-confuserex/build/artifacts).
 
