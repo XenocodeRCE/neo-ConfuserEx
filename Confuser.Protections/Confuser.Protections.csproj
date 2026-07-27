@@ -95,6 +95,17 @@
     <Compile Include="ControlFlow\JumpMangler.cs" />
     <Compile Include="ControlFlow\ManglerBase.cs" />
     <Compile Include="ControlFlow\SwitchMangler.cs" />
+    <Compile Include="Integrity\IntegrityProtection.cs" />
+    <Compile Include="Integrity\IntegrityInjectPhase.cs" />
+    <Compile Include="Integrity\IntegrityWriterPhase.cs" />
+    <Compile Include="Integrity\IntegrityContext.cs" />
+    <Compile Include="Integrity\IntegritySegmentDescriptor.cs" />
+    <Compile Include="Integrity\IntegrityManifestBuilder.cs" />
+    <Compile Include="Integrity\IntegrityManifestSerializer.cs" />
+    <Compile Include="Integrity\IntegrityCanonicalizer.cs" />
+    <Compile Include="Integrity\IntegrityRuntimeInjector.cs" />
+    <Compile Include="Integrity\IBuildSigningService.cs" />
+    <Compile Include="Integrity\RsaBuildSigningService.cs" />
     <Compile Include="AntiDumpProtection.cs" />
     <Compile Include="AntiDebugProtection.cs" />
     <Compile Include="InvalidMetadataProtection.cs" />
