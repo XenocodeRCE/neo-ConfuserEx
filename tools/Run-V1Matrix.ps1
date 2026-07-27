@@ -423,3 +423,4 @@ if ($totals.failed -gt 0 -or $totals.reproFail -gt 0 -or $totals.structFail -gt 
     exit 1
 }
 exit 0
+

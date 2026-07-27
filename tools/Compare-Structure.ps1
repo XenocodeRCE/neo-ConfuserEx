@@ -121,3 +121,4 @@ if ($OutputFile) {
 }
 
 $result | ConvertTo-Json -Depth 4
+

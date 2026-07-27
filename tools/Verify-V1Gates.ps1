@@ -247,3 +247,4 @@ if ($failed -gt 0) {
     Write-Host "  V1 READY — All gates passed" -ForegroundColor Green
     exit 0
 }
+
