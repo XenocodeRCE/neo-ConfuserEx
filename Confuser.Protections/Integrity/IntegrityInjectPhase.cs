@@ -57,6 +57,9 @@ namespace Confuser.Protections.Integrity
             {
                 context.Logger.Warn("Integrity runtime injection failed, skipping: " + ex.Message);
                 context.Logger.Debug(ex.ToString());
+                // Clean up annotations to prevent post-processing errors
+                context.Annotations.Set(module, IntegrityProtection.ContextKey, (IntegrityContext)null);
+                context.Annotations.Set(module, IntegrityContext.SignerKey, (IBuildSigningService)null);
                 return;
             }
 
