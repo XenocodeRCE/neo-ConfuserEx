@@ -30,6 +30,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfuserEx", "ConfuserEx\Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTest\UnitTest.csproj", "{E98490BB-63E5-492D-B14E-304DE928F81A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{D1E2F3A4-5001-4000-9000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicFlow", "UnitTest\Samples\BasicFlow\BasicFlow.csproj", "{A1B2C3D4-1001-4000-8000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExceptionFlow", "UnitTest\Samples\ExceptionFlow\ExceptionFlow.csproj", "{A1B2C3D4-1002-4000-8000-000000000002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Constants", "UnitTest\Samples\Constants\Constants.csproj", "{A1B2C3D4-1003-4000-8000-000000000003}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +80,23 @@ Global
 		{E98490BB-63E5-492D-B14E-304DE928F81A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E98490BB-63E5-492D-B14E-304DE928F81A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E98490BB-63E5-492D-B14E-304DE928F81A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-1001-4000-8000-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-1001-4000-8000-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-1001-4000-8000-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-1001-4000-8000-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-1002-4000-8000-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-1002-4000-8000-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-1002-4000-8000-000000000002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-1002-4000-8000-000000000002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-1003-4000-8000-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-1003-4000-8000-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-1003-4000-8000-000000000003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-1003-4000-8000-000000000003}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A1B2C3D4-1001-4000-8000-000000000001} = {D1E2F3A4-5001-4000-9000-000000000001}
+		{A1B2C3D4-1002-4000-8000-000000000002} = {D1E2F3A4-5001-4000-9000-000000000001}
+		{A1B2C3D4-1003-4000-8000-000000000003} = {D1E2F3A4-5001-4000-9000-000000000001}
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
