@@ -1,68 +1,77 @@
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AttributeUsage(AttributeTargets.Method)]
+class ProtectCriticalLogicAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Method)]
+class HotPathAttribute : Attribute { }
 
 namespace KoiVmSample
 {
-    /// <summary>
-    ///     Sample application for KoiVM virtualization testing.
-    ///     Contains simple methods suitable for virtualization:
-    ///     no exception handlers, no state machines, small instruction count.
-    /// </summary>
     internal static class Program
     {
         static int Main(string[] args)
         {
             int result = 0;
-            result += Add(1, 2);           // 3
-            result += Multiply(3, 4);      // 12
-            result += Fibonacci(5);        // 5
-            result += Factorial(4);        // 24
-            result += Compute(10);         // 55 (sum 1..10)
+            result += Add(1, 2);                    // 3
+            result += UnmarkedHelper(5);            // 10
+            result += TryCatchMethod(4);            // 2
+            result += AsyncMethod().Result;         // 42
+            int sum = 0;
+            foreach (var v in IteratorMethod()) sum += v; // 6
+            result += sum;
+            result += LongMethod(10);               // 55
+            result += new Calculator(3, 4).Compute(); // 7
+            result += HotPathCompute(3);            // 9
 
-            int expected = 3 + 12 + 5 + 24 + 55; // 99
-            if (result == expected)
-            {
-                Console.WriteLine("RESULT:PASS");
-                return 0;
-            }
+            int expected = 3 + 10 + 2 + 42 + 6 + 55 + 7 + 9; // 134
+            if (result == expected) { Console.WriteLine("RESULT:PASS"); return 0; }
             Console.WriteLine("RESULT:FAIL");
             return 1;
         }
 
-        /// <summary>Simple addition — good VM candidate.</summary>
-        public static int Add(int a, int b)
+        [ProtectCriticalLogic]
+        public static int Add(int a, int b) => a + b;
+
+        public static int UnmarkedHelper(int x) => x * 2;
+
+        public static int TryCatchMethod(int divisor)
         {
-            return a + b;
+            try { return 8 / divisor; }
+            catch (DivideByZeroException) { return 0; }
         }
 
-        /// <summary>Simple multiplication — good VM candidate.</summary>
-        public static int Multiply(int a, int b)
+        public static async Task<int> AsyncMethod()
         {
-            return a * b;
+            await Task.Delay(1);
+            return 42;
         }
 
-        /// <summary>Recursive Fibonacci — tests VM call support.</summary>
-        public static int Fibonacci(int n)
+        public static IEnumerable<int> IteratorMethod()
         {
-            if (n <= 1) return n;
-            return Fibonacci(n - 1) + Fibonacci(n - 2);
+            yield return 1; yield return 2; yield return 3;
         }
 
-        /// <summary>Iterative factorial — tests loops.</summary>
-        public static int Factorial(int n)
-        {
-            int result = 1;
-            for (int i = 2; i <= n; i++)
-                result *= i;
-            return result;
-        }
-
-        /// <summary>Summation loop — tests local variables and branches.</summary>
-        public static int Compute(int max)
+        public static int LongMethod(int max)
         {
             int sum = 0;
-            for (int i = 1; i <= max; i++)
-                sum += i;
+            for (int i = 1; i <= max; i++) sum += i;
             return sum;
         }
+
+        static Program() { }
+
+        class Calculator
+        {
+            int a, b;
+            public Calculator(int a, int b) { this.a = a; this.b = b; }
+            public int Compute() => a + b;
+        }
+
+        [HotPath]
+        public static int HotPathCompute(int x) => x * 3;
     }
 }
