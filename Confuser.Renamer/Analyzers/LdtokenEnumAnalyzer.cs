@@ -11,6 +11,12 @@ namespace Confuser.Renamer.Analyzers {
 			if (method == null || !method.HasBody)
 				return;
 
+			// Skip injected runtime helpers — they are not user code and their
+			// ldtoken instructions reference compiler-generated types that may
+			// not be resolvable in the target framework.
+			if (ProtectionAnnotations.IsInjectedHelper(context, method))
+				return;
+
 			// When a ldtoken instruction reference a definition,
 			// most likely it would be used in reflection and thus probably should not be renamed.
 			// Also, when ToString is invoked on enum,

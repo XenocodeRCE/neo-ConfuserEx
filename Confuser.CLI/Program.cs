@@ -91,6 +91,9 @@ namespace Confuser.CLI {
 						// Propagate seed from template for deterministic reproducibility
 						proj.Seed = templateProj.Seed;
 						proj.Debug = templateProj.Debug;
+						// Propagate plugin paths so CRPROJ-embedded plugins are loaded
+						foreach (var pluginPath in templateProj.PluginPaths)
+							proj.PluginPaths.Add(pluginPath);
 					}
 
 					// Generate a ConfuserProject for input modules

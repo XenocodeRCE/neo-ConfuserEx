@@ -62,6 +62,7 @@
     <Compile Include="AntiDebug.Safe.cs" />
     <Compile Include="Resource.cs" />
     <Compile Include="AntiTamper.Normal.cs" />
+    <Compile Include="Integrity.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

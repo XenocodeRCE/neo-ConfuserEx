@@ -208,7 +208,8 @@ foreach ($seed in $seeds) {
             $testDir = "$runDir\test"
             $testCopy = "$testDir\$seedSampleName.exe"
             New-Item -ItemType Directory -Force $testDir | Out-Null
-            Copy-Item $protectedExe $testCopy -Force
+            # Copy ALL files from protected directory (exe may depend on sibling DLLs like KoiVM.Runtime.dll)
+            Copy-Item "$protectDir\*" $testDir -Force
 
             $testStdout = "$testDir\stdout.txt"
             $testStderr = "$testDir\stderr.txt"

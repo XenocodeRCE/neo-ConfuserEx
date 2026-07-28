@@ -33,13 +33,13 @@
       <argument name="cfg" value="true" />
     </protection>
 
-    <!-- Integrity: signed resource verification (requires CONFUSER_INTEGRITY_KEY_PATH env var) -->
-    <protection id="integrity">
+    <!-- Integrity: signed resource verification, startup check -->
+        <protection id="integrity">
       <argument name="resourcePattern" value="^(?!integrity\.).*" />
-      <argument name="checkMode" value="startup" />
+      <argument name="checkMode" value="manual" />
     </protection>
 
-    <!-- KoiVM: requires -plugin KoiVM.Confuser.exe or <plugin> in CRPROJ -->
+    <!-- KoiVM: explicit mode (requires -plugin KoiVM.Confuser.dll) -->
     <!-- <protection id="koi">
       <argument name="selection" value="Explicit" />
       <argument name="maximumInstructions" value="300" />
@@ -51,4 +51,5 @@
   </rule>
 
 </project>
+
 

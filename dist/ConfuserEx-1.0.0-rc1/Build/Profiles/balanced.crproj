@@ -32,20 +32,15 @@
       <argument name="elements" value="SIP" />
     </protection>
 
-    <!-- Integrity: signed resource verification (requires CONFUSER_INTEGRITY_KEY_PATH env var) -->
-    <protection id="integrity">
+    <!-- Integrity: signed resource verification (requires feat/signed-integrity) -->
+    <!-- <protection id="integrity">
       <argument name="resourcePattern" value="^(?!integrity\.).*" />
       <argument name="checkMode" value="manual" />
-    </protection>
-
-    <!-- KoiVM: requires -plugin KoiVM.Confuser.exe or <plugin> in CRPROJ -->
-    <!-- <protection id="koi">
-      <argument name="selection" value="Explicit" />
-      <argument name="maximumInstructions" value="150" />
-      <argument name="export" value="true" />
     </protection> -->
+
+    <!-- KoiVM: disabled -->
+    <!-- <protection id="koi" /> -->
 
   </rule>
 
 </project>
-

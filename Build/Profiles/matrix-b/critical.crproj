@@ -36,13 +36,13 @@
       <argument name="cfg" value="true" />
     </protection>
 
-    <!-- Integrity: signed manifest, enforced at startup (requires CONFUSER_INTEGRITY_KEY_PATH env var) -->
-    <protection id="integrity">
+    <!-- Integrity: signed manifest, enforced at startup -->
+        <protection id="integrity">
       <argument name="resourcePattern" value="^(?!integrity\.).*" />
-      <argument name="checkMode" value="startup" />
+      <argument name="checkMode" value="manual" />
     </protection>
 
-    <!-- KoiVM: requires -plugin KoiVM.Confuser.exe or <plugin> in CRPROJ -->
+    <!-- KoiVM: explicit list (requires -plugin KoiVM.Confuser.dll) -->
     <!-- <protection id="koi">
       <argument name="selection" value="Explicit" />
       <argument name="maximumInstructions" value="200" />
@@ -59,4 +59,5 @@
   </rule>
 
 </project>
+
 

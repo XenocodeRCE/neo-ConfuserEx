@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project outputDir="..\..\Release" baseDir="." xmlns="http://confuser.codeplex.com">
+  <rule pattern="true" preset="none">
+    <protection id="rename">
+      <argument name="renPublic" value="true" />
+      <argument name="mode" value="sequential" />
+    </protection>
+    <protection id="integrity">
+      <argument name="resourcePattern" value="^(?!integrity\.).*" />
+      <argument name="checkMode" value="manual" />
+    </protection>
+    <protection id="koi">
+      <argument name="selection" value="Explicit" />
+      <argument name="maximumInstructions" value="150" />
+      <argument name="export" value="true" />
+    </protection>
+  </rule>
+  <plugin>D:\dev\confuser-lab\src\KoiVM\Release\bin\KoiVM.Confuser.exe</plugin>
+</project>
