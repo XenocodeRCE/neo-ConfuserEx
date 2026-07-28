@@ -13,7 +13,7 @@ namespace Confuser.Core.Services {
 		/// </summary>
 		static readonly byte[] primes = { 7, 11, 23, 37, 43, 59, 71 };
 
-		readonly SHA256Managed sha256 = new SHA256Managed();
+		readonly SHA256 sha256 = SHA256.Create();
 		int mixIndex;
 		byte[] state; //32 bytes
 		int stateFilled;

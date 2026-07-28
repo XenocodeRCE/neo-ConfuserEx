@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ConfuserEx.ViewModel;
-using GalaSoft.MvvmLight.Command;
+using ConfuserEx.Commanding;
 
 namespace ConfuserEx {
 	public class FileDragDrop {

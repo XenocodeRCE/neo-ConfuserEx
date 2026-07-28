@@ -58,7 +58,7 @@ namespace Confuser.Protections.ReferenceProxy {
 					ret.ModeHandler = store.strong ?? (store.strong = new StrongMode());
 					break;
 				default:
-					throw new UnreachableException();
+					throw new Confuser.Core.UnreachableException();
 			}
 
 			switch (ret.Encoding) {
@@ -75,7 +75,7 @@ namespace Confuser.Protections.ReferenceProxy {
 						context.CurrentModuleWriterOptions.Cor20HeaderOptions.Flags &= ~ComImageFlags.ILOnly;
 					break;
 				default:
-					throw new UnreachableException();
+					throw new Confuser.Core.UnreachableException();
 			}
 
 			return ret;

@@ -7,6 +7,7 @@ using Confuser.Renamer.References;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
+using UnreachableException = Confuser.Core.UnreachableException;
 
 namespace Confuser.Renamer.Analyzers {
 	internal class TypeBlobAnalyzer : IRenamer {
@@ -46,9 +47,15 @@ namespace Confuser.Renamer.Analyzers {
 			table = module.TablesStream.Get(Table.CustomAttribute);
 			len = table.Rows;
 			IEnumerable<CustomAttribute> attrs = Enumerable.Range(1, (int)len)
-			                                               .Select(rid => module.ResolveHasCustomAttribute(module.TablesStream.ReadCustomAttributeRow((uint)rid).Parent))
-			                                               .Distinct()
-			                                               .SelectMany(owner => owner.CustomAttributes);
+				.Select(rid => {
+					RawCustomAttributeRow row;
+					return module.TablesStream.TryReadCustomAttributeRow((uint)rid, out row)
+						? module.ResolveHasCustomAttribute(row.Parent)
+						: null;
+				})
+				.Where(owner => owner != null)
+				.Distinct()
+				.SelectMany(owner => owner.CustomAttributes);
 			foreach (CustomAttribute attr in attrs) {
 				if (attr.Constructor is MemberRef)
 					AnalyzeMemberRef(context, service, (MemberRef)attr.Constructor);
@@ -132,7 +139,7 @@ namespace Confuser.Renamer.Analyzers {
 				IDnlibDef member;
 				if (memberRef.IsFieldRef) member = memberRef.ResolveFieldThrow();
 				else if (memberRef.IsMethodRef) member = memberRef.ResolveMethodThrow();
-				else throw new UnreachableException();
+				else throw new Confuser.Core.UnreachableException();
 
 				service.AddReference(member, new MemberRefReference(memberRef, member));
 			}

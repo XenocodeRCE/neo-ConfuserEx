@@ -89,7 +89,7 @@ namespace Confuser.Protections.ControlFlow {
 						case FlowControl.Throw:
 							continue;
 						default:
-							throw new UnreachableException();
+							throw new Confuser.Core.UnreachableException();
 					}
 
 					if (i + 1 < body.Instructions.Count) {

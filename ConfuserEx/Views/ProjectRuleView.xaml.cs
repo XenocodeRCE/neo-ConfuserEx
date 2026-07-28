@@ -6,7 +6,7 @@ using System.Windows.Media;
 using Confuser.Core;
 using Confuser.Core.Project;
 using ConfuserEx.ViewModel;
-using GalaSoft.MvvmLight.Command;
+using ConfuserEx.Commanding;
 
 namespace ConfuserEx.Views {
 	public partial class ProjectRuleView : Window {

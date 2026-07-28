@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Confuser.Core.Services;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
-using Microsoft.Win32;
 using InformationalAttribute = System.Reflection.AssemblyInformationalVersionAttribute;
 using ProductAttribute = System.Reflection.AssemblyProductAttribute;
 using CopyrightAttribute = System.Reflection.AssemblyCopyrightAttribute;
@@ -31,11 +31,16 @@ namespace Confuser.Core {
 
 		static ConfuserEngine() {
 			Assembly assembly = typeof(ConfuserEngine).Assembly;
-			var nameAttr = (ProductAttribute)assembly.GetCustomAttributes(typeof(ProductAttribute), false)[0];
-			var verAttr = (InformationalAttribute)assembly.GetCustomAttributes(typeof(InformationalAttribute), false)[0];
-			var cpAttr = (CopyrightAttribute)assembly.GetCustomAttributes(typeof(CopyrightAttribute), false)[0];
-			Version = string.Format("{0} {1}", nameAttr.Product, verAttr.InformationalVersion);
-			Copyright = cpAttr.Copyright;
+			var nameAttr = assembly.GetCustomAttribute<ProductAttribute>();
+			var verAttr = assembly.GetCustomAttribute<InformationalAttribute>();
+			var cpAttr = assembly.GetCustomAttribute<CopyrightAttribute>();
+			var assemblyName = assembly.GetName();
+			string product = nameAttr == null ? "Neo-ConfuserEx" : nameAttr.Product;
+			string version = verAttr == null
+				? (assemblyName.Version == null ? "development" : assemblyName.Version.ToString())
+				: verAttr.InformationalVersion;
+			Version = string.Format("{0} {1}", product, version);
+			Copyright = cpAttr == null ? string.Empty : cpAttr.Copyright;
 
 			AppDomain.CurrentDomain.AssemblyResolve += (sender, e) => {
 				try {
@@ -85,14 +90,14 @@ namespace Confuser.Core {
 
 			bool ok = false;
 			try {
-				var asmResolver = new AssemblyResolver();
+				var asmResolver = new ConfuserAssemblyResolver();
 				asmResolver.EnableTypeDefCache = true;
 				asmResolver.DefaultModuleContext = new ModuleContext(asmResolver);
-				context.Resolver = asmResolver;
-				context.BaseDirectory = Path.Combine(Environment.CurrentDirectory, parameters.Project.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar) + "." + Path.DirectorySeparatorChar);
-				context.OutputDirectory = Path.Combine(parameters.Project.BaseDirectory, parameters.Project.OutputDirectory.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar);
+				context.InternalResolver = asmResolver;
+				context.BaseDirectory = Path.GetFullPath(parameters.Project.BaseDirectory, Environment.CurrentDirectory);
+				context.OutputDirectory = Path.GetFullPath(parameters.Project.OutputDirectory, context.BaseDirectory);
 				foreach (string probePath in parameters.Project.ProbePaths)
-					asmResolver.PostSearchPaths.Insert(0, Path.Combine(context.BaseDirectory, probePath));
+					asmResolver.PostSearchPaths.Insert(0, Path.GetFullPath(probePath, context.BaseDirectory));
 
 				context.CheckCancellation();
 
@@ -134,6 +139,7 @@ namespace Confuser.Core {
 				marker.Initalize(prots, packers);
 				MarkerResult markings = marker.MarkProject(parameters.Project, context);
 				context.Modules = new ModuleSorter(markings.Modules).Sort().ToList().AsReadOnly();
+				TargetFrameworkResolver.AddRuntimeSearchPaths(context, context.Modules);
 				foreach (var module in context.Modules)
 					module.EnableTypeDefFindCache = false;
 				context.OutputModules = Enumerable.Repeat<byte[]>(null, context.Modules.Count).ToArray();
@@ -199,8 +205,8 @@ namespace Confuser.Core {
 				context.Logger.ErrorException("Unknown error occurred.", ex);
 			}
 			finally {
-				if (context.Resolver != null)
-					context.Resolver.Clear();
+				if (context.InternalResolver != null)
+					context.InternalResolver.Clear();
 				context.Logger.Finish(ok);
 			}
 		}
@@ -328,7 +334,7 @@ namespace Confuser.Core {
 		}
 
 		static void CopyPEHeaders(PEHeadersOptions writerOptions, ModuleDefMD module) {
-			var image = module.MetaData.PEImage;
+			var image = module.Metadata.PEImage;
 			writerOptions.MajorImageVersion = image.ImageNTHeaders.OptionalHeader.MajorImageVersion;
 			writerOptions.MajorLinkerVersion = image.ImageNTHeaders.OptionalHeader.MajorLinkerVersion;
 			writerOptions.MajorOperatingSystemVersion = image.ImageNTHeaders.OptionalHeader.MajorOperatingSystemVersion;
@@ -344,7 +350,8 @@ namespace Confuser.Core {
 
 			context.CurrentModuleWriterListener = new ModuleWriterListener();
 			context.CurrentModuleWriterListener.OnWriterEvent += (sender, e) => context.CheckCancellation();
-			context.CurrentModuleWriterOptions = new ModuleWriterOptions(context.CurrentModule, context.CurrentModuleWriterListener);
+			context.CurrentModuleWriterOptions = new ModuleWriterOptions(context.CurrentModule);
+			context.CurrentModuleWriterListener.Attach(context.CurrentModuleWriterOptions);
 			CopyPEHeaders(context.CurrentModuleWriterOptions.PEHeadersOptions, context.CurrentModule);
 
 			if (!context.CurrentModule.IsILOnly || context.CurrentModule.VTableFixups != null)
@@ -375,8 +382,11 @@ namespace Confuser.Core {
 			string output = context.Modules[context.CurrentModuleIndex].Location;
 			if (output != null) {
 				if (!Path.IsPathRooted(output))
-					output = Path.Combine(Environment.CurrentDirectory, output);
-				output = Utils.GetRelativePath(output, context.BaseDirectory);
+					output = Path.Combine(context.BaseDirectory, output);
+				output = Path.GetRelativePath(context.BaseDirectory, output);
+				if (output == ".." ||
+				    output.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+					output = Path.GetFileName(context.Modules[context.CurrentModuleIndex].Location);
 			}
 			else {
 				output = context.CurrentModule.Name;
@@ -427,7 +437,7 @@ namespace Confuser.Core {
 		}
 
 		static void SaveModules(ConfuserContext context) {
-			context.Resolver.Clear();
+			context.InternalResolver.Clear();
 			for (int i = 0; i < context.OutputModules.Count; i++) {
 				string path = Path.GetFullPath(Path.Combine(context.OutputDirectory, context.OutputPaths[i]));
 				string dir = Path.GetDirectoryName(path);
@@ -449,59 +459,15 @@ namespace Confuser.Core {
 			else {
 				context.Logger.InfoFormat("{0} {1}", Version, Copyright);
 
-				Type mono = Type.GetType("Mono.Runtime");
 				context.Logger.InfoFormat("Running on {0}, {1}, {2} bits",
-				                          Environment.OSVersion,
-				                          mono == null ?
-					                          ".NET Framework v" + Environment.Version :
-					                          mono.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, null),
+				                          RuntimeInformation.OSDescription,
+				                          RuntimeInformation.FrameworkDescription,
 				                          IntPtr.Size * 8);
 			}
 		}
 
 		static IEnumerable<string> GetFrameworkVersions() {
-			// http://msdn.microsoft.com/en-us/library/hh925568.aspx
-
-			using (RegistryKey ndpKey =
-				RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").
-				            OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\")) {
-				foreach (string versionKeyName in ndpKey.GetSubKeyNames()) {
-					if (!versionKeyName.StartsWith("v"))
-						continue;
-
-					RegistryKey versionKey = ndpKey.OpenSubKey(versionKeyName);
-					var name = (string)versionKey.GetValue("Version", "");
-					string sp = versionKey.GetValue("SP", "").ToString();
-					string install = versionKey.GetValue("Install", "").ToString();
-					if (install == "" || sp != "" && install == "1")
-						yield return versionKeyName + "  " + name;
-
-					if (name != "")
-						continue;
-
-					foreach (string subKeyName in versionKey.GetSubKeyNames()) {
-						RegistryKey subKey = versionKey.OpenSubKey(subKeyName);
-						name = (string)subKey.GetValue("Version", "");
-						if (name != "")
-							sp = subKey.GetValue("SP", "").ToString();
-						install = subKey.GetValue("Install", "").ToString();
-
-						if (install == "")
-							yield return versionKeyName + "  " + name;
-						else if (install == "1")
-							yield return "  " + subKeyName + "  " + name;
-					}
-				}
-			}
-
-			using (RegistryKey ndpKey =
-				RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").
-				            OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\")) {
-				if (ndpKey.GetValue("Release") == null)
-					yield break;
-				var releaseKey = (int)ndpKey.GetValue("Release");
-				yield return "v4.5 " + releaseKey;
-			}
+			yield return RuntimeInformation.FrameworkDescription;
 		}
 
 		/// <summary>
@@ -514,15 +480,15 @@ namespace Confuser.Core {
 
 			context.Logger.Error("---BEGIN DEBUG INFO---");
 
-			context.Logger.Error("Installed Framework Versions:");
+			context.Logger.Error("Runtime:");
 			foreach (string ver in GetFrameworkVersions()) {
 				context.Logger.ErrorFormat("    {0}", ver.Trim());
 			}
 			context.Logger.Error("");
 
-			if (context.Resolver != null) {
+			if (context.InternalResolver != null) {
 				context.Logger.Error("Cached assemblies:");
-				foreach (AssemblyDef asm in context.Resolver.GetCachedAssemblies()) {
+				foreach (AssemblyDef asm in context.InternalResolver.GetCachedAssemblies()) {
 					if (string.IsNullOrEmpty(asm.ManifestModule.Location))
 						context.Logger.ErrorFormat("    {0}", asm.FullName);
 					else

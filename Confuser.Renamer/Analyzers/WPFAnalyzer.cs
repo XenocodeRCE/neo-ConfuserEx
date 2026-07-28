@@ -108,6 +108,7 @@ namespace Confuser.Renamer.Analyzers {
 			if (wpfResInfo == null)
 				return;
 
+			var newResources = new List<EmbeddedResource>();
 			foreach (EmbeddedResource res in module.Resources.OfType<EmbeddedResource>()) {
 				Dictionary<string, BamlDocument> resInfo;
 
@@ -117,8 +118,7 @@ namespace Confuser.Renamer.Analyzers {
 				var stream = new MemoryStream();
 				var writer = new ResourceWriter(stream);
 
-				res.Data.Position = 0;
-				var reader = new ResourceReader(new ImageStream(res.Data));
+				var reader = new ResourceReader(res.CreateReader().AsStream());
 				IDictionaryEnumerator enumerator = reader.GetEnumerator();
 				while (enumerator.MoveNext()) {
 					var name = (string)enumerator.Key;
@@ -140,7 +140,12 @@ namespace Confuser.Renamer.Analyzers {
 					writer.AddResourceData(name, typeName, data);
 				}
 				writer.Generate();
-				res.Data = MemoryImageStream.Create(stream.ToArray());
+				newResources.Add(new EmbeddedResource(res.Name, stream.ToArray(), res.Attributes));
+			}
+
+			foreach (EmbeddedResource res in newResources) {
+				int index = module.Resources.IndexOfEmbeddedResource(res.Name);
+				module.Resources[index] = res;
 			}
 		}
 
@@ -315,8 +320,7 @@ namespace Confuser.Renamer.Analyzers {
 
 				var resInfo = new Dictionary<string, BamlDocument>();
 
-				res.Data.Position = 0;
-				var reader = new ResourceReader(new ImageStream(res.Data));
+				var reader = new ResourceReader(res.CreateReader().AsStream());
 				IDictionaryEnumerator enumerator = reader.GetEnumerator();
 				while (enumerator.MoveNext()) {
 					var name = (string)enumerator.Key;

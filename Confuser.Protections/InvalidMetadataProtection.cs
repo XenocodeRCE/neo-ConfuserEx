@@ -57,64 +57,66 @@ namespace Confuser.Protections {
 			protected override void Execute(ConfuserContext context, ProtectionParameters parameters) {
 				if (parameters.Targets.Contains(context.CurrentModule)) {
 					random = context.Registry.GetService<IRandomService>().GetRandomGenerator(_FullId);
-					context.CurrentModuleWriterListener.OnWriterEvent += OnWriterEvent;
+					context.CurrentModuleWriterOptions.WriterEvent += OnWriterEvent;
 				}
 			}
 
-			void Randomize<T>(MDTable<T> table) where T : IRawRow {
-				List<T> rows = table.ToList();
+			void Randomize<T>(MDTable<T> table) where T : struct {
+				var rows = Enumerable.Range(1, table.Rows)
+					.Select(index => table[(uint)index])
+					.ToList();
 				random.Shuffle(rows);
-				table.Reset();
-				foreach (T row in rows)
-					table.Add(row);
+				for (int index = 0; index < rows.Count; index++)
+					table[(uint)index + 1] = rows[index];
+				table.ReAddRows();
 			}
 
-			void OnWriterEvent(object sender, ModuleWriterListenerEventArgs e) {
+			void OnWriterEvent(object sender, ModuleWriterEventArgs e) {
 				var writer = (ModuleWriterBase)sender;
-				if (e.WriterEvent == ModuleWriterEvent.MDEndCreateTables) {
+				if (e.Event == ModuleWriterEvent.MDEndCreateTables) {
 					// These hurts reflection
 
 					/*
-					uint methodLen = (uint)writer.MetaData.TablesHeap.MethodTable.Rows + 1;
-					uint fieldLen = (uint)writer.MetaData.TablesHeap.FieldTable.Rows + 1;
+					uint methodLen = (uint)writer.Metadata.TablesHeap.MethodTable.Rows + 1;
+					uint fieldLen = (uint)writer.Metadata.TablesHeap.FieldTable.Rows + 1;
 
-					var root = writer.MetaData.TablesHeap.TypeDefTable.Add(new RawTypeDefRow(
+					var root = writer.Metadata.TablesHeap.TypeDefTable.Add(new RawTypeDefRow(
 							0, 0x7fff7fff, 0, 0x3FFFD, fieldLen, methodLen));
-					writer.MetaData.TablesHeap.NestedClassTable.Add(new RawNestedClassRow(root, root));
+					writer.Metadata.TablesHeap.NestedClassTable.Add(new RawNestedClassRow(root, root));
 
-					var namespaces = writer.MetaData.TablesHeap.TypeDefTable
+					var namespaces = writer.Metadata.TablesHeap.TypeDefTable
 						.Select(row => row.Namespace)
 						.Distinct()
 						.ToList();
 					foreach (var ns in namespaces)
 					{
 						if (ns == 0) continue;
-						var type = writer.MetaData.TablesHeap.TypeDefTable.Add(new RawTypeDefRow(
+						var type = writer.Metadata.TablesHeap.TypeDefTable.Add(new RawTypeDefRow(
 							0, 0, ns, 0x3FFFD, fieldLen, methodLen));
-						writer.MetaData.TablesHeap.NestedClassTable.Add(new RawNestedClassRow(root, type));
+						writer.Metadata.TablesHeap.NestedClassTable.Add(new RawNestedClassRow(root, type));
 					}
 					
-					foreach (var row in writer.MetaData.TablesHeap.ParamTable)
+					foreach (var row in writer.Metadata.TablesHeap.ParamTable)
 						row.Name = 0x7fff7fff;
 					*/
 
-					writer.MetaData.TablesHeap.ModuleTable.Add(new RawModuleRow(0, 0x7fff7fff, 0, 0, 0));
-					writer.MetaData.TablesHeap.AssemblyTable.Add(new RawAssemblyRow(0, 0, 0, 0, 0, 0, 0, 0x7fff7fff, 0));
+					writer.Metadata.TablesHeap.ModuleTable.Add(new RawModuleRow(0, 0x7fff7fff, 0, 0, 0));
+					writer.Metadata.TablesHeap.AssemblyTable.Add(new RawAssemblyRow(0, 0, 0, 0, 0, 0, 0, 0x7fff7fff, 0));
 
 					int r = random.NextInt32(8, 16);
 					for (int i = 0; i < r; i++)
-						writer.MetaData.TablesHeap.ENCLogTable.Add(new RawENCLogRow(random.NextUInt32(), random.NextUInt32()));
+						writer.Metadata.TablesHeap.ENCLogTable.Add(new RawENCLogRow(random.NextUInt32(), random.NextUInt32()));
 					r = random.NextInt32(8, 16);
 					for (int i = 0; i < r; i++)
-						writer.MetaData.TablesHeap.ENCMapTable.Add(new RawENCMapRow(random.NextUInt32()));
+						writer.Metadata.TablesHeap.ENCMapTable.Add(new RawENCMapRow(random.NextUInt32()));
 
-					//Randomize(writer.MetaData.TablesHeap.NestedClassTable);
-					Randomize(writer.MetaData.TablesHeap.ManifestResourceTable);
-					//Randomize(writer.MetaData.TablesHeap.GenericParamConstraintTable);
+					//Randomize(writer.Metadata.TablesHeap.NestedClassTable);
+					Randomize(writer.Metadata.TablesHeap.ManifestResourceTable);
+					//Randomize(writer.Metadata.TablesHeap.GenericParamConstraintTable);
 
-					writer.TheOptions.MetaDataOptions.TablesHeapOptions.ExtraData = random.NextUInt32();
-					writer.TheOptions.MetaDataOptions.TablesHeapOptions.UseENC = false;
-					writer.TheOptions.MetaDataOptions.MetaDataHeaderOptions.VersionString += "\0\0\0\0";
+					writer.TheOptions.MetadataOptions.TablesHeapOptions.ExtraData = random.NextUInt32();
+					writer.TheOptions.MetadataOptions.TablesHeapOptions.UseENC = false;
+					writer.TheOptions.MetadataOptions.MetadataHeaderOptions.VersionString += "\0\0\0\0";
 
 					/*
 					We are going to create a new specific '#GUID' Heap to avoid UnConfuserEX to work.
@@ -124,17 +126,17 @@ namespace Confuser.Protections {
 					our brand new Heap
 					*/
 					//
-                    writer.TheOptions.MetaDataOptions.OtherHeapsEnd.Add(new RawHeap("#GUID", Guid.NewGuid().ToByteArray()));
+                    writer.TheOptions.MetadataOptions.CustomHeaps.Add(new RawHeap("#GUID", Guid.NewGuid().ToByteArray()));
 					//
-					writer.TheOptions.MetaDataOptions.OtherHeapsEnd.Add(new RawHeap("#Strings", new byte[1]));
-					writer.TheOptions.MetaDataOptions.OtherHeapsEnd.Add(new RawHeap("#Blob", new byte[1]));
-					writer.TheOptions.MetaDataOptions.OtherHeapsEnd.Add(new RawHeap("#Schema", new byte[1]));
+					writer.TheOptions.MetadataOptions.CustomHeaps.Add(new RawHeap("#Strings", new byte[1]));
+					writer.TheOptions.MetadataOptions.CustomHeaps.Add(new RawHeap("#Blob", new byte[1]));
+					writer.TheOptions.MetadataOptions.CustomHeaps.Add(new RawHeap("#Schema", new byte[1]));
 				}
-				else if (e.WriterEvent == ModuleWriterEvent.MDOnAllTablesSorted) {
-					writer.MetaData.TablesHeap.DeclSecurityTable.Add(new RawDeclSecurityRow(
+				else if (e.Event == ModuleWriterEvent.MDOnAllTablesSorted) {
+					writer.Metadata.TablesHeap.DeclSecurityTable.Add(new RawDeclSecurityRow(
 						                                                 unchecked(0x7fff), 0xffff7fff, 0xffff7fff));
 					/*
-					writer.MetaData.TablesHeap.ManifestResourceTable.Add(new RawManifestResourceRow(
+					writer.Metadata.TablesHeap.ManifestResourceTable.Add(new RawManifestResourceRow(
 						0x7fff7fff, (uint)ManifestResourceAttributes.Private, 0x7fff7fff, 2));
 					*/
 				}
@@ -158,8 +160,8 @@ namespace Confuser.Protections {
 				return (uint)content.Length;
 			}
 
-			protected override void WriteToImpl(BinaryWriter writer) {
-				writer.Write(content);
+			protected override void WriteToImpl(DataWriter writer) {
+				writer.WriteBytes(content);
 			}
 		}
 	}

@@ -55,7 +55,7 @@ namespace Confuser.Protections.Resources {
 						moduleCtx.ModeHandler = new DynamicMode();
 						break;
 					default:
-						throw new UnreachableException();
+						throw new Confuser.Core.UnreachableException();
 				}
 
 				// Inject helpers

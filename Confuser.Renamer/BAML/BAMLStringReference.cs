@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Confuser.Core;
 using dnlib.DotNet.Emit;
+using UnreachableException = Confuser.Core.UnreachableException;
 
 namespace Confuser.Renamer.BAML {
 	public class BAMLStringReference : IBAMLReference {
@@ -33,7 +34,7 @@ namespace Confuser.Renamer.BAML {
 				                      StringComparison.InvariantCultureIgnoreCase);
 			}
 			else
-				throw new UnreachableException();
+				throw new Confuser.Core.UnreachableException();
 			instr.Operand = value;
 		}
 	}

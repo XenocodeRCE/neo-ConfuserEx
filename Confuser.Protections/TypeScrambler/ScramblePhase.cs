@@ -18,6 +18,8 @@ namespace Confuser.Protections.TypeScramble {
         public override string Name =>"Type scrambler";
 
         protected override void Execute(ConfuserContext context, ProtectionParameters parameters) {
+            if (parameters.Targets.Count == 0)
+                return;
 
             var rewriter = new TypeRewriter(context);
             rewriter.ApplyGeterics();

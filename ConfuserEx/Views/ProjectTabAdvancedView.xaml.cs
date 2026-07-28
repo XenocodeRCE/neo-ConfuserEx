@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Windows;
 using ConfuserEx.ViewModel;
-using GalaSoft.MvvmLight.Command;
+using ConfuserEx.Commanding;
 using Ookii.Dialogs.Wpf;
 
 namespace ConfuserEx.Views {

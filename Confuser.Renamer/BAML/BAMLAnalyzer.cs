@@ -8,6 +8,7 @@ using Confuser.Core;
 using Confuser.Renamer.Analyzers;
 using Confuser.Renamer.References;
 using dnlib.DotNet;
+using UnreachableException = Confuser.Core.UnreachableException;
 
 namespace Confuser.Renamer.BAML {
 	internal class BAMLAnalyzer {
@@ -312,7 +313,7 @@ namespace Confuser.Renamer.BAML {
 			else if (attr is EventDef)
 				retType = ((EventDef)attr).EventType;
 			return (retType == null) ? null : retType.ResolveTypeDefThrow();
-			throw new UnreachableException();
+			throw new Confuser.Core.UnreachableException();
 		}
 
 		void ProcessElementBody(BamlElement root, BamlElement elem) {
@@ -520,11 +521,15 @@ namespace Confuser.Renamer.BAML {
 						var bamlRefs = service.FindRenamer<WPFAnalyzer>().bamlRefs;
 						bamlRefs.AddListEntry(baml, reference);
 						bamlRefs.AddListEntry(xaml, reference);
-						bamlRefs.AddListEntry(Uri.EscapeUriString(baml), reference);
-						bamlRefs.AddListEntry(Uri.EscapeUriString(xaml), reference);
+						bamlRefs.AddListEntry(EscapeUriPath(baml), reference);
+						bamlRefs.AddListEntry(EscapeUriPath(xaml), reference);
 					}
 				}
 			}
+		}
+
+		static string EscapeUriPath(string path) {
+			return string.Join("/", path.Split('/').Select(Uri.EscapeDataString));
 		}
 
 		Tuple<IDnlibDef, AttributeInfoRecord, TypeDef> AnalyzeAttributeReference(TypeDef declType, AttributeInfoRecord rec) {

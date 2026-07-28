@@ -50,7 +50,7 @@ namespace Confuser.Renamer.Analyzers {
 						}
 					}
 					else
-						throw new UnreachableException();
+						throw new Confuser.Core.UnreachableException();
 				}
 				else if ((instr.OpCode.Code == Code.Call || instr.OpCode.Code == Code.Callvirt) &&
 				         ((IMethod)instr.Operand).Name == "ToString") {

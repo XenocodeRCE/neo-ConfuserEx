@@ -64,7 +64,7 @@ namespace Confuser.Protections.Constants {
 					EncodeConstant64(moduleCtx, t.Hi, t.Lo, context.CurrentModule.CorLibTypes.Double, entry.Value);
 				}
 				else
-					throw new UnreachableException();
+					throw new Confuser.Core.UnreachableException();
 				context.CheckCancellation();
 			}
 			ReferenceReplacer.ReplaceReference(moduleCtx, parameters);

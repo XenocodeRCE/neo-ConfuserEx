@@ -58,23 +58,20 @@ namespace Confuser.Core.Helpers {
 		/// <param name="ctx">The injection context.</param>
 		/// <returns>The new TypeDef.</returns>
 		static TypeDef PopulateContext(TypeDef typeDef, InjectContext ctx) {
-			TypeDef ret;
-			IDnlibDef existing;
-			if (!ctx.Map.TryGetValue(typeDef, out existing)) {
+			var ret = ctx.Map(typeDef)?.ResolveTypeDef();
+			if (ret == null) {
 				ret = Clone(typeDef);
-				ctx.Map[typeDef] = ret;
+				ctx.DefMap[typeDef] = ret;
 			}
-			else
-				ret = (TypeDef)existing;
 
 			foreach (TypeDef nestedType in typeDef.NestedTypes)
 				ret.NestedTypes.Add(PopulateContext(nestedType, ctx));
 
 			foreach (MethodDef method in typeDef.Methods)
-				ret.Methods.Add((MethodDef)(ctx.Map[method] = Clone(method)));
+				ret.Methods.Add((MethodDef)(ctx.DefMap[method] = Clone(method)));
 
 			foreach (FieldDef field in typeDef.Fields)
-				ret.Fields.Add((FieldDef)(ctx.Map[field] = Clone(field)));
+				ret.Fields.Add((FieldDef)(ctx.DefMap[field] = Clone(field)));
 
 			return ret;
 		}
@@ -85,12 +82,12 @@ namespace Confuser.Core.Helpers {
 		/// <param name="typeDef">The origin TypeDef.</param>
 		/// <param name="ctx">The injection context.</param>
 		static void CopyTypeDef(TypeDef typeDef, InjectContext ctx) {
-			var newTypeDef = (TypeDef)ctx.Map[typeDef];
+			var newTypeDef = ctx.Map(typeDef).ResolveTypeDefThrow();
 
-			newTypeDef.BaseType = (ITypeDefOrRef)ctx.Importer.Import(typeDef.BaseType);
+			newTypeDef.BaseType = ctx.Importer.Import(typeDef.BaseType);
 
 			foreach (InterfaceImpl iface in typeDef.Interfaces)
-				newTypeDef.Interfaces.Add(new InterfaceImplUser((ITypeDefOrRef)ctx.Importer.Import(iface.Interface)));
+				newTypeDef.Interfaces.Add(new InterfaceImplUser(ctx.Importer.Import(iface.Interface)));
 		}
 
 		/// <summary>
@@ -99,10 +96,13 @@ namespace Confuser.Core.Helpers {
 		/// <param name="methodDef">The origin MethodDef.</param>
 		/// <param name="ctx">The injection context.</param>
 		static void CopyMethodDef(MethodDef methodDef, InjectContext ctx) {
-			var newMethodDef = (MethodDef)ctx.Map[methodDef];
+			var newMethodDef = ctx.Map(methodDef).ResolveMethodDefThrow();
 
 			newMethodDef.Signature = ctx.Importer.Import(methodDef.Signature);
 			newMethodDef.Parameters.UpdateParameterTypes();
+
+			foreach (ParamDef paramDef in methodDef.ParamDefs)
+				newMethodDef.ParamDefs.Add(new ParamDefUser(paramDef.Name, paramDef.Sequence, paramDef.Attributes));
 
 			if (methodDef.ImplMap != null)
 				newMethodDef.ImplMap = new ImplMapUser(new ModuleRefUser(ctx.TargetModule, methodDef.ImplMap.Module.Name), methodDef.ImplMap.Name, methodDef.ImplMap.Attributes);
@@ -120,8 +120,6 @@ namespace Confuser.Core.Helpers {
 					var newLocal = new Local(ctx.Importer.Import(local.Type));
 					newMethodDef.Body.Variables.Add(newLocal);
 					newLocal.Name = local.Name;
-					newLocal.PdbAttributes = local.PdbAttributes;
-
 					bodyMap[local] = newLocal;
 				}
 
@@ -152,7 +150,7 @@ namespace Confuser.Core.Helpers {
 
 				foreach (ExceptionHandler eh in methodDef.Body.ExceptionHandlers)
 					newMethodDef.Body.ExceptionHandlers.Add(new ExceptionHandler(eh.HandlerType) {
-						CatchType = eh.CatchType == null ? null : (ITypeDefOrRef)ctx.Importer.Import(eh.CatchType),
+						CatchType = eh.CatchType == null ? null : ctx.Importer.Import(eh.CatchType),
 						TryStart = (Instruction)bodyMap[eh.TryStart],
 						TryEnd = (Instruction)bodyMap[eh.TryEnd],
 						HandlerStart = (Instruction)bodyMap[eh.HandlerStart],
@@ -170,7 +168,7 @@ namespace Confuser.Core.Helpers {
 		/// <param name="fieldDef">The origin FieldDef.</param>
 		/// <param name="ctx">The injection context.</param>
 		static void CopyFieldDef(FieldDef fieldDef, InjectContext ctx) {
-			var newFieldDef = (FieldDef)ctx.Map[fieldDef];
+			var newFieldDef = ctx.Map(fieldDef).ResolveFieldDefThrow();
 
 			newFieldDef.Signature = ctx.Importer.Import(fieldDef.Signature);
 		}
@@ -203,9 +201,9 @@ namespace Confuser.Core.Helpers {
 		/// <returns>The injected TypeDef.</returns>
 		public static TypeDef Inject(TypeDef typeDef, ModuleDef target) {
 			var ctx = new InjectContext(typeDef.Module, target);
-			PopulateContext(typeDef, ctx);
+			var result = PopulateContext(typeDef, ctx);
 			Copy(typeDef, ctx, true);
-			return (TypeDef)ctx.Map[typeDef];
+			return result;
 		}
 
 		/// <summary>
@@ -216,9 +214,10 @@ namespace Confuser.Core.Helpers {
 		/// <returns>The injected MethodDef.</returns>
 		public static MethodDef Inject(MethodDef methodDef, ModuleDef target) {
 			var ctx = new InjectContext(methodDef.Module, target);
-			ctx.Map[methodDef] = Clone(methodDef);
+			MethodDef result;
+			ctx.DefMap[methodDef] = result = Clone(methodDef);
 			CopyMethodDef(methodDef, ctx);
-			return (MethodDef)ctx.Map[methodDef];
+			return result;
 		}
 
 		/// <summary>
@@ -230,20 +229,20 @@ namespace Confuser.Core.Helpers {
 		/// <returns>Injected members.</returns>
 		public static IEnumerable<IDnlibDef> Inject(TypeDef typeDef, TypeDef newType, ModuleDef target) {
 			var ctx = new InjectContext(typeDef.Module, target);
-			ctx.Map[typeDef] = newType;
+			ctx.DefMap[typeDef] = newType;
 			PopulateContext(typeDef, ctx);
 			Copy(typeDef, ctx, false);
-			return ctx.Map.Values.Except(new[] { newType });
+			return ctx.DefMap.Values.Except(new[] { newType }).OfType<IDnlibDef>();
 		}
 
 		/// <summary>
 		///     Context of the injection process.
 		/// </summary>
-		class InjectContext : ImportResolver {
+		class InjectContext : ImportMapper {
 			/// <summary>
 			///     The mapping of origin definitions to injected definitions.
 			/// </summary>
-			public readonly Dictionary<IDnlibDef, IDnlibDef> Map = new Dictionary<IDnlibDef, IDnlibDef>();
+			public readonly Dictionary<IMemberRef, IMemberRef> DefMap = new Dictionary<IMemberRef, IMemberRef>();
 
 			/// <summary>
 			///     The module which source type originated from.
@@ -256,11 +255,6 @@ namespace Confuser.Core.Helpers {
 			public readonly ModuleDef TargetModule;
 
 			/// <summary>
-			///     The importer.
-			/// </summary>
-			readonly Importer importer;
-
-			/// <summary>
 			///     Initializes a new instance of the <see cref="InjectContext" /> class.
 			/// </summary>
 			/// <param name="module">The origin module.</param>
@@ -268,36 +262,54 @@ namespace Confuser.Core.Helpers {
 			public InjectContext(ModuleDef module, ModuleDef target) {
 				OriginModule = module;
 				TargetModule = target;
-				importer = new Importer(target, ImporterOptions.TryToUseTypeDefs);
-				importer.Resolver = this;
+				Importer = new Importer(target, ImporterOptions.TryToUseTypeDefs, new GenericParamContext(), this);
 			}
 
 			/// <summary>
 			///     Gets the importer.
 			/// </summary>
 			/// <value>The importer.</value>
-			public Importer Importer {
-				get { return importer; }
-			}
+			public Importer Importer { get; private set; }
 
 			/// <inheritdoc />
-			public override TypeDef Resolve(TypeDef typeDef) {
-				if (Map.ContainsKey(typeDef))
-					return (TypeDef)Map[typeDef];
+			public override ITypeDefOrRef Map(ITypeDefOrRef source) {
+				IMemberRef mappedRef;
+				if (DefMap.TryGetValue(source, out mappedRef))
+					return mappedRef as ITypeDefOrRef;
+
+				var sourceRef = source as TypeRef;
+				if (sourceRef != null) {
+					var targetAssemblyRef = TargetModule.GetAssemblyRef(sourceRef.DefinitionAssembly.Name);
+					if (targetAssemblyRef != null &&
+					    !string.Equals(targetAssemblyRef.FullName, source.DefinitionAssembly.FullName, StringComparison.Ordinal)) {
+						var fixedTypeRef = new TypeRefUser(sourceRef.Module, sourceRef.Namespace, sourceRef.Name, targetAssemblyRef);
+						return Importer.Import(fixedTypeRef);
+					}
+				}
 				return null;
 			}
 
 			/// <inheritdoc />
-			public override MethodDef Resolve(MethodDef methodDef) {
-				if (Map.ContainsKey(methodDef))
-					return (MethodDef)Map[methodDef];
+			public override IMethod Map(MethodDef source) {
+				IMemberRef mappedRef;
+				if (DefMap.TryGetValue(source, out mappedRef))
+					return mappedRef as IMethod;
 				return null;
 			}
 
 			/// <inheritdoc />
-			public override FieldDef Resolve(FieldDef fieldDef) {
-				if (Map.ContainsKey(fieldDef))
-					return (FieldDef)Map[fieldDef];
+			public override IField Map(FieldDef source) {
+				IMemberRef mappedRef;
+				if (DefMap.TryGetValue(source, out mappedRef))
+					return mappedRef as IField;
+				return null;
+			}
+
+			/// <inheritdoc />
+			public override MemberRef Map(MemberRef source) {
+				IMemberRef mappedRef;
+				if (DefMap.TryGetValue(source, out mappedRef))
+					return mappedRef as MemberRef;
 				return null;
 			}
 		}

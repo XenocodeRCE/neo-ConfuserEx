@@ -63,8 +63,6 @@ namespace Confuser.Protections {
 					AntiMode mode = parameters.GetParameter(context, module, "mode", AntiMode.Win32);
 
 					TypeDef rtType;
-					TypeDef attr = null;
-					const string attrName = "System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute";
 					switch (mode) {
 						case AntiMode.Safe:
 							rtType = rt.GetRuntimeType("Confuser.Runtime.AntiDebugSafe");
@@ -74,17 +72,9 @@ namespace Confuser.Protections {
 							break;
 						case AntiMode.Antinet:
 							rtType = rt.GetRuntimeType("Confuser.Runtime.AntiDebugAntinet");
-
-							attr = rt.GetRuntimeType(attrName);
-							module.Types.Add(attr = InjectHelper.Inject(attr, module));
-							foreach (IDnlibDef member in attr.FindDefinitions()) {
-								marker.Mark(member, (Protection)Parent);
-								name.Analyze(member);
-							}
-							name.SetCanRename(attr, false);
 							break;
 						default:
-							throw new UnreachableException();
+							throw new Confuser.Core.UnreachableException();
 					}
 
 					IEnumerable<IDnlibDef> members = InjectHelper.Inject(rtType, module.GlobalType, module);
@@ -107,9 +97,6 @@ namespace Confuser.Protections {
 							else
 								ren = false;
 
-							CustomAttribute ca = method.CustomAttributes.Find(attrName);
-							if (ca != null)
-								ca.Constructor = attr.FindMethod(".ctor");
 						}
 						else if (member is FieldDef) {
 							var field = (FieldDef)member;

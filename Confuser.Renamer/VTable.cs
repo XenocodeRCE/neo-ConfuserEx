@@ -5,6 +5,7 @@ using System.Linq;
 using Confuser.Core;
 using dnlib.DotNet;
 using ILogger = Confuser.Core.ILogger;
+using UnreachableException = Confuser.Core.UnreachableException;
 
 namespace Confuser.Renamer {
 	public class VTableSignature {
@@ -53,7 +54,7 @@ namespace Confuser.Renamer {
 		}
 
 		public override string ToString() {
-			return FullNameCreator.MethodFullName("", Name, MethodSig);
+			return FullNameFactory.MethodFullName("", Name, MethodSig);
 		}
 	}
 
@@ -355,7 +356,7 @@ namespace Confuser.Renamer {
 				}
 				throw new NotSupportedException("Unexpected type: " + type);
 			}
-			throw new UnreachableException();
+			throw new Confuser.Core.UnreachableException();
 		}
 
 		static VTableSlot ResolveSlot(TypeDef openType, VTableSlot slot, IList<TypeSig> genArgs) {

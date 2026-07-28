@@ -69,10 +69,17 @@ namespace Confuser.Protections.Compress {
 				if (e.WriterEvent == ModuleWriterEvent.MDEndAddResources) {
 					var writer = (ModuleWriterBase)sender;
 					ctx.ManifestResources = new List<Tuple<uint, uint, string>>();
-					Dictionary<uint, byte[]> stringDict = writer.MetaData.StringsHeap.GetAllRawData().ToDictionary(pair => pair.Key, pair => pair.Value);
-					foreach (RawManifestResourceRow resource in writer.MetaData.TablesHeap.ManifestResourceTable)
-						ctx.ManifestResources.Add(Tuple.Create(resource.Offset, resource.Flags, Encoding.UTF8.GetString(stringDict[resource.Name])));
-					ctx.EntryPointToken = writer.MetaData.GetToken(ctx.EntryPoint).Raw;
+					foreach (var resource in writer.Module.Resources) {
+						uint rid = writer.Metadata.GetManifestResourceRid(resource);
+						if (rid == 0)
+							continue;
+						var resourceRow = writer.Metadata.TablesHeap.ManifestResourceTable[rid];
+						ctx.ManifestResources.Add(Tuple.Create(
+							resourceRow.Offset,
+							resourceRow.Flags,
+							resource.Name.ToString()));
+					}
+					ctx.EntryPointToken = writer.Metadata.GetToken(ctx.EntryPoint).Raw;
 				}
 			}
 		}

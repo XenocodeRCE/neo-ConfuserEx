@@ -1,17 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Confuser.Testing;
 
 namespace UnitTest
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            Console.Write("Hello o/");
-            Console.ReadKey();
+            var genericTest = new GenericTest<string>();
+            string reversed = new string(genericTest.GetReverse("Confuser").ToArray());
+            if (reversed != "resufnoC")
+                throw new InvalidOperationException("Generic method regression test failed.");
+
+            KoiSelectionTests.RunAll();
+            Console.WriteLine("All unit tests passed.");
+            return 0;
         }
     }
 }

@@ -57,7 +57,7 @@ namespace Confuser.Protections.Constants {
 							context.CurrentModuleWriterOptions.Cor20HeaderOptions.Flags &= ~ComImageFlags.ILOnly;
 						break;
 					default:
-						throw new UnreachableException();
+						throw new Confuser.Core.UnreachableException();
 				}
 
 				// Inject helpers
@@ -124,7 +124,7 @@ namespace Confuser.Protections.Constants {
 					else if (instr.OpCode == OpCodes.Ldsfld &&
 					         method.DeclaringType.Name == "Constant") {
 						if (field.Name == "b") instr.Operand = moduleCtx.BufferField;
-						else throw new UnreachableException();
+						else throw new Confuser.Core.UnreachableException();
 					}
 				}
 				context.CurrentModule.GlobalType.Methods.Add(decoderInst);

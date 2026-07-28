@@ -92,7 +92,7 @@ namespace Confuser.Protections.ControlFlow {
 					instrs.Add(Instruction.Create(OpCodes.Ldarg, new Parameter(0xff)));
 					break;
 				case 4:
-					instrs.Add(Instruction.Create(OpCodes.Ldloc, new Local(null) { Index = 0xff }));
+					instrs.Add(Instruction.Create(OpCodes.Ldloc, new Local(null, null, 0xff)));
 					break;
 				case 5:
 					instrs.Add(Instruction.Create(OpCodes.Ldtoken, Method));

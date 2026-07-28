@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Confuser.Core;
+using UnreachableException = Confuser.Core.UnreachableException;
 
 namespace Confuser.Renamer.BAML {
 	internal class BAMLPropertyReference : IBAMLReference {
@@ -23,7 +24,7 @@ namespace Confuser.Renamer.BAML {
 				value = newName.Substring(0, newName.Length - 5) + ".xaml";
 			}
 			else
-				throw new UnreachableException();
+				throw new Confuser.Core.UnreachableException();
 			rec.Value = "pack://application:,,,/" + value;
 		}
 	}

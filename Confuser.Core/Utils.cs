@@ -102,7 +102,7 @@ namespace Confuser.Core {
 		/// <param name="buffer">The input buffer.</param>
 		/// <returns>The SHA1 hash of the input buffer.</returns>
 		public static byte[] SHA1(byte[] buffer) {
-			var sha = new SHA1Managed();
+			using var sha = System.Security.Cryptography.SHA1.Create();
 			return sha.ComputeHash(buffer);
 		}
 
@@ -128,7 +128,7 @@ namespace Confuser.Core {
 		/// <param name="buffer">The input buffer.</param>
 		/// <returns>The SHA256 hash of the input buffer.</returns>
 		public static byte[] SHA256(byte[] buffer) {
-			var sha = new SHA256Managed();
+			using var sha = System.Security.Cryptography.SHA256.Create();
 			return sha.ComputeHash(buffer);
 		}
 

@@ -72,15 +72,15 @@ namespace Confuser.Core {
 			try {
 				if (pass != null) //pfx
 				{
-					// http://stackoverflow.com/a/12196742/462805
-					var cert = new X509Certificate2();
-					cert.Import(path, pass, X509KeyStorageFlags.Exportable);
-
-					var rsa = cert.PrivateKey as RSACryptoServiceProvider;
+					using var cert = new X509Certificate2(
+						path,
+						pass,
+						X509KeyStorageFlags.Exportable | X509KeyStorageFlags.EphemeralKeySet);
+					using RSA rsa = cert.GetRSAPrivateKey();
 					if (rsa == null)
 						throw new ArgumentException("RSA key does not present in the certificate.", "path");
 
-					return new StrongNameKey(rsa.ExportCspBlob(true));
+					return new StrongNameKey(CreateStrongNameKeyBlob(rsa.ExportParameters(true)));
 				}
 				return new StrongNameKey(path);
 			}
@@ -88,6 +88,39 @@ namespace Confuser.Core {
 				context.Logger.ErrorException("Cannot load the Strong Name Key located at: " + path, ex);
 				throw new ConfuserException(ex);
 			}
+		}
+
+		static byte[] CreateStrongNameKeyBlob(RSAParameters key) {
+			if (key.Modulus == null || key.Exponent == null || key.P == null || key.Q == null ||
+			    key.DP == null || key.DQ == null || key.InverseQ == null || key.D == null)
+				throw new CryptographicException("The certificate does not contain a complete RSA private key.");
+
+			using var stream = new MemoryStream();
+			using var writer = new BinaryWriter(stream);
+			writer.Write((byte)7); // PRIVATEKEYBLOB
+			writer.Write((byte)2);
+			writer.Write((ushort)0);
+			writer.Write(0x00002400u); // CALG_RSA_SIGN
+			writer.Write(0x32415352u); // RSA2
+			writer.Write(key.Modulus.Length * 8);
+			WriteLittleEndian(writer, key.Exponent, 4);
+			WriteLittleEndian(writer, key.Modulus, key.Modulus.Length);
+			WriteLittleEndian(writer, key.P, key.Modulus.Length / 2);
+			WriteLittleEndian(writer, key.Q, key.Modulus.Length / 2);
+			WriteLittleEndian(writer, key.DP, key.Modulus.Length / 2);
+			WriteLittleEndian(writer, key.DQ, key.Modulus.Length / 2);
+			WriteLittleEndian(writer, key.InverseQ, key.Modulus.Length / 2);
+			WriteLittleEndian(writer, key.D, key.Modulus.Length);
+			return stream.ToArray();
+		}
+
+		static void WriteLittleEndian(BinaryWriter writer, byte[] value, int size) {
+			if (value.Length > size)
+				throw new CryptographicException("An RSA key component is larger than expected.");
+			for (int i = value.Length - 1; i >= 0; i--)
+				writer.Write(value[i]);
+			for (int i = value.Length; i < size; i++)
+				writer.Write((byte)0);
 		}
 
 		/// <summary>
@@ -120,13 +153,13 @@ namespace Confuser.Core {
 					continue;
 				}
 
-				ModuleDefMD modDef = module.Resolve(proj.BaseDirectory, context.Resolver.DefaultModuleContext);
+				ModuleDefMD modDef = module.Resolve(proj.BaseDirectory, context.InternalResolver.DefaultModuleContext);
 				context.CheckCancellation();
 
 				if (proj.Debug)
 					modDef.LoadPdb();
 
-				context.Resolver.AddToCache(modDef);
+				context.InternalResolver.AddToCache(modDef);
 				modules.Add(Tuple.Create(module, modDef));
 			}
 

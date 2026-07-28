@@ -161,7 +161,7 @@ namespace Confuser.Core {
 				if (xWeak == null && yWeak == null) {
 					return xWeak.IsAlive && ReferenceEquals(xWeak.Target, y);
 				}
-				throw new UnreachableException();
+				throw new Confuser.Core.UnreachableException();
 			}
 
 			/// <inheritdoc />

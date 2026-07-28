@@ -330,7 +330,7 @@ namespace Confuser.Protections.ReferenceProxy {
 				ctx.Name.SetCanRename(cctor, false);
 			}
 
-			ctx.Context.CurrentModuleWriterOptions.MetaDataOptions.Flags |= MetaDataFlags.PreserveExtraSignatureData;
+			ctx.Context.CurrentModuleWriterOptions.MetadataOptions.Flags |= MetadataFlags.PreserveExtraSignatureData;
 			ctx.Context.CurrentModuleWriterListener.OnWriterEvent += EncodeField;
 			encodeCtx = ctx;
 		}
@@ -342,7 +342,7 @@ namespace Confuser.Protections.ReferenceProxy {
 					.Where(entry => entry != null)
 					.ToDictionary(entry => entry.Item1, entry => entry.Item2);
 				foreach (FieldDesc desc in fieldDescs) {
-					uint token = writer.MetaData.GetToken(desc.Method).Raw;
+					uint token = writer.Metadata.GetToken(desc.Method).Raw;
 					uint key = encodeCtx.Random.NextUInt32() | 1;
 
 					// CA
@@ -371,7 +371,7 @@ namespace Confuser.Protections.ReferenceProxy {
 
 					// Field sig
 					FieldSig sig = desc.Field.FieldSig;
-					uint encodedToken = (token - writer.MetaData.GetToken(((CModOptSig)sig.Type).Modifier).Raw) ^ encodedNameKey;
+					uint encodedToken = (token - writer.Metadata.GetToken(((CModOptSig)sig.Type).Modifier).Raw) ^ encodedNameKey;
 
 
 					var extra = new byte[8];

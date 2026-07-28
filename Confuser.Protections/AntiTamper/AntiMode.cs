@@ -42,7 +42,7 @@ namespace Confuser.Protections.AntiTamper {
 					deriver = new DynamicDeriver();
 					break;
 				default:
-					throw new UnreachableException();
+					throw new Confuser.Core.UnreachableException();
 			}
 			deriver.Init(context, random);
 
@@ -124,8 +124,8 @@ namespace Confuser.Protections.AntiTamper {
 
 			uint alignment;
 
-			alignment = writer.TextSection.Remove(writer.MetaData).Value;
-			writer.TextSection.Add(writer.MetaData, alignment);
+			alignment = writer.TextSection.Remove(writer.Metadata).Value;
+			writer.TextSection.Add(writer.Metadata, alignment);
 
 			alignment = writer.TextSection.Remove(writer.NetResources).Value;
 			writer.TextSection.Add(writer.NetResources, alignment);
@@ -163,7 +163,7 @@ namespace Confuser.Protections.AntiTamper {
 			foreach (MethodDef method in methods) {
 				if (!method.HasBody)
 					continue;
-				MethodBody body = writer.MetaData.GetMethodBody(method);
+				MethodBody body = writer.Metadata.GetMethodBody(method);
 				bool ok = writer.MethodBodies.Remove(body);
 				encryptedChunk.Add(body);
 			}
@@ -187,7 +187,7 @@ namespace Confuser.Protections.AntiTamper {
 			uint encLoc = 0, encSize = 0;
 			int origSects = -1;
 			if (writer is NativeModuleWriter && writer.Module is ModuleDefMD)
-				origSects = ((ModuleDefMD)writer.Module).MetaData.PEImage.ImageSectionHeaders.Count;
+				origSects = ((ModuleDefMD)writer.Module).Metadata.PEImage.ImageSectionHeaders.Count;
 			for (int i = 0; i < sections; i++) {
 				uint nameHash;
 				if (origSects > 0) {

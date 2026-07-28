@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Confuser.Core;
 using Confuser.Core.Services;
 using Confuser.DynCipher.AST;
+using UnreachableException = Confuser.Core.UnreachableException;
 
 namespace Confuser.DynCipher.Generation {
 	internal class ExpressionGenerator {
@@ -33,7 +34,7 @@ namespace Confuser.DynCipher.Generation {
 				case ExpressionOps.Neg:
 					return -GenerateExpression(random, current, currentDepth + 1, targetDepth);
 			}
-			throw new UnreachableException();
+			throw new Confuser.Core.UnreachableException();
 		}
 
 		static void SwapOperands(RandomGenerator random, Expression exp) {
@@ -52,7 +53,7 @@ namespace Confuser.DynCipher.Generation {
 			else if (exp is LiteralExpression || exp is VariableExpression)
 				return;
 			else
-				throw new UnreachableException();
+				throw new Confuser.Core.UnreachableException();
 		}
 
 		static bool HasVariable(Expression exp, Dictionary<Expression, bool> hasVar) {
@@ -70,7 +71,7 @@ namespace Confuser.DynCipher.Generation {
 					ret = HasVariable(((UnaryOpExpression)exp).Value, hasVar);
 				}
 				else
-					throw new UnreachableException();
+					throw new Confuser.Core.UnreachableException();
 				hasVar[exp] = ret;
 			}
 			return ret;

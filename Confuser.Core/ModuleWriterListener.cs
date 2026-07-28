@@ -6,14 +6,20 @@ namespace Confuser.Core {
 	/// <summary>
 	///     The listener of module writer event.
 	/// </summary>
-	public class ModuleWriterListener : IModuleWriterListener {
-		/// <inheritdoc />
-		void IModuleWriterListener.OnWriterEvent(ModuleWriterBase writer, ModuleWriterEvent evt) {
-			if (evt == ModuleWriterEvent.PESectionsCreated)
-				NativeEraser.Erase(writer as NativeModuleWriter, writer.Module as ModuleDefMD);
-			if (OnWriterEvent != null) {
-				OnWriterEvent(writer, new ModuleWriterListenerEventArgs(evt));
-			}
+	public class ModuleWriterListener {
+		/// <summary>
+		///     Attaches this compatibility listener to dnlib's current writer-event API.
+		/// </summary>
+		public void Attach(ModuleWriterOptionsBase options) {
+			if (options == null)
+				throw new ArgumentNullException(nameof(options));
+			options.WriterEvent += HandleWriterEvent;
+		}
+
+		void HandleWriterEvent(object sender, ModuleWriterEventArgs args) {
+			if (args.Event == ModuleWriterEvent.PESectionsCreated)
+				NativeEraser.Erase(args.Writer as NativeModuleWriter, args.Writer.Module as ModuleDefMD);
+			OnWriterEvent?.Invoke(args.Writer, new ModuleWriterListenerEventArgs(args.Event));
 		}
 
 		/// <summary>

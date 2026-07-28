@@ -1,0 +1,36 @@
+name: .NET compatibility
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  modern-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Build, protect, disassemble, and execute corpus
+        run: tests/ModernNet/run-modern-compat.sh
+      - name: Upload protected assemblies and IL
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: modern-compat-obfuscation
+          path: artifacts/modern-compat
+          if-no-files-found: error
+
+  windows-desktop:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Build full solution
+        run: dotnet build Confuser2.sln --configuration Release

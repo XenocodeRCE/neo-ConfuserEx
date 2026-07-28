@@ -9,6 +9,7 @@ using Confuser.Core.Services;
 using Confuser.Renamer;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
 
 namespace Confuser.Protections.Resources {
@@ -116,9 +117,16 @@ namespace Confuser.Protections.Resources {
 				Debug.Assert(buffIndex == compressedBuff.Length);
 				var size = (uint)encryptedBuffer.Length;
 
-				TablesHeap tblHeap = writer.MetaData.TablesHeap;
-				tblHeap.ClassLayoutTable[writer.MetaData.GetClassLayoutRid(ctx.DataType)].ClassSize = size;
-				tblHeap.FieldTable[writer.MetaData.GetRid(ctx.DataField)].Flags |= (ushort)FieldAttributes.HasFieldRVA;
+				TablesHeap tblHeap = writer.Metadata.TablesHeap;
+				uint classLayoutRid = writer.Metadata.GetClassLayoutRid(ctx.DataType);
+				var classLayout = tblHeap.ClassLayoutTable[classLayoutRid];
+				tblHeap.ClassLayoutTable[classLayoutRid] =
+					new RawClassLayoutRow(classLayout.PackingSize, size, classLayout.Parent);
+
+				uint fieldRid = writer.Metadata.GetRid(ctx.DataField);
+				var field = tblHeap.FieldTable[fieldRid];
+				tblHeap.FieldTable[fieldRid] =
+					new RawFieldRow((ushort)(field.Flags | (ushort)FieldAttributes.HasFieldRVA), field.Name, field.Signature);
 				encryptedResource = writer.Constants.Add(new ByteArrayChunk(encryptedBuffer), 8);
 
 				// inject key values
@@ -127,8 +135,11 @@ namespace Confuser.Protections.Resources {
 				                          new[] { (int)(size / 4), (int)(keySeed) });
 			}
 			else if (e.WriterEvent == ModuleWriterEvent.EndCalculateRvasAndFileOffsets) {
-				TablesHeap tblHeap = writer.MetaData.TablesHeap;
-				tblHeap.FieldRVATable[writer.MetaData.GetFieldRVARid(ctx.DataField)].RVA = (uint)encryptedResource.RVA;
+				TablesHeap tblHeap = writer.Metadata.TablesHeap;
+				uint fieldRvaRid = writer.Metadata.GetFieldRVARid(ctx.DataField);
+				var fieldRva = tblHeap.FieldRVATable[fieldRvaRid];
+				tblHeap.FieldRVATable[fieldRvaRid] =
+					new RawFieldRVARow((uint)encryptedResource.RVA, fieldRva.Field);
 			}
 		}
 	}

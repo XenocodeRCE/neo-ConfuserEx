@@ -108,7 +108,7 @@ namespace Confuser.Core
                 typeDef = typeDef.DeclaringType;
             } while (typeDef != null);
 
-            throw new UnreachableException();
+            throw new Confuser.Core.UnreachableException();
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace Confuser.Core
 
                 type = type.BaseType.ResolveTypeDefThrow();
             } while (type != null);
-            throw new UnreachableException();
+            throw new Confuser.Core.UnreachableException();
         }
 
         /// <summary>
@@ -543,94 +543,4 @@ namespace Confuser.Core
     }
 
 
-    /// <summary>
-    ///     <see cref="Stream" /> wrapper of <see cref="IImageStream" />.
-    /// </summary>
-    public class ImageStream : Stream
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ImageStream" /> class.
-        /// </summary>
-        /// <param name="baseStream">The base stream.</param>
-        public ImageStream(IImageStream baseStream)
-        {
-            BaseStream = baseStream;
-        }
-
-        /// <summary>
-        ///     Gets the base stream of this instance.
-        /// </summary>
-        /// <value>The base stream.</value>
-        public IImageStream BaseStream { get; private set; }
-
-        /// <inheritdoc />
-        public override bool CanRead
-        {
-            get { return true; }
-        }
-
-        /// <inheritdoc />
-        public override bool CanSeek
-        {
-            get { return true; }
-        }
-
-        /// <inheritdoc />
-        public override bool CanWrite
-        {
-            get { return false; }
-        }
-
-        /// <inheritdoc />
-        public override long Length
-        {
-            get { return BaseStream.Length; }
-        }
-
-        /// <inheritdoc />
-        public override long Position
-        {
-            get { return BaseStream.Position; }
-            set { BaseStream.Position = value; }
-        }
-
-        /// <inheritdoc />
-        public override void Flush() { }
-
-        /// <inheritdoc />
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return BaseStream.Read(buffer, offset, count);
-        }
-
-        /// <inheritdoc />
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            switch (origin)
-            {
-                case SeekOrigin.Begin:
-                    BaseStream.Position = offset;
-                    break;
-                case SeekOrigin.Current:
-                    BaseStream.Position += offset;
-                    break;
-                case SeekOrigin.End:
-                    BaseStream.Position = BaseStream.Length + offset;
-                    break;
-            }
-            return BaseStream.Position;
-        }
-
-        /// <inheritdoc />
-        public override void SetLength(long value)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <inheritdoc />
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new NotSupportedException();
-        }
-    }
 }

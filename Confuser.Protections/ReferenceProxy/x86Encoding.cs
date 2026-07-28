@@ -8,6 +8,7 @@ using Confuser.DynCipher.Generation;
 using Confuser.Renamer;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
 using MethodBody = dnlib.DotNet.Writer.MethodBody;
 
@@ -79,8 +80,15 @@ namespace Confuser.Protections.ReferenceProxy {
 			}
 			else if (e.WriterEvent == ModuleWriterEvent.EndCalculateRvasAndFileOffsets) {
 				foreach (var native in nativeCodes) {
-					uint rid = writer.MetaData.GetRid(native.Item1);
-					writer.MetaData.TablesHeap.MethodTable[rid].RVA = (uint)native.Item3.RVA;
+					uint rid = writer.Metadata.GetRid(native.Item1);
+					var methodRow = writer.Metadata.TablesHeap.MethodTable[rid];
+					writer.Metadata.TablesHeap.MethodTable[rid] = new RawMethodRow(
+						(uint)native.Item3.RVA,
+						methodRow.ImplFlags,
+						methodRow.Flags,
+						methodRow.Name,
+						methodRow.Signature,
+						methodRow.ParamList);
 				}
 			}
 		}

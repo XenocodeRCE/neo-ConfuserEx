@@ -179,7 +179,7 @@ namespace Confuser.Core.Services {
 					case FlowControl.Throw:
 						break;
 					default:
-						throw new UnreachableException();
+						throw new Confuser.Core.UnreachableException();
 				}
 			}
 

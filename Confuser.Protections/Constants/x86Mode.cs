@@ -7,6 +7,7 @@ using Confuser.DynCipher.AST;
 using Confuser.DynCipher.Generation;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
 using MethodBody = dnlib.DotNet.Writer.MethodBody;
 
@@ -127,8 +128,15 @@ namespace Confuser.Protections.Constants {
 					codeChunk = writer.MethodBodies.Add(new MethodBody(code));
 				}
 				else if (e.WriterEvent == ModuleWriterEvent.EndCalculateRvasAndFileOffsets) {
-					uint rid = writer.MetaData.GetRid(native);
-					writer.MetaData.TablesHeap.MethodTable[rid].RVA = (uint)codeChunk.RVA;
+					uint rid = writer.Metadata.GetRid(native);
+					var methodRow = writer.Metadata.TablesHeap.MethodTable[rid];
+					writer.Metadata.TablesHeap.MethodTable[rid] = new RawMethodRow(
+						(uint)codeChunk.RVA,
+						methodRow.ImplFlags,
+						methodRow.Flags,
+						methodRow.Name,
+						methodRow.Signature,
+						methodRow.ParamList);
 				}
 			}
 		}

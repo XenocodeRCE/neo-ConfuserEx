@@ -65,19 +65,19 @@ namespace Confuser.Testing
         {
             public string FullName;
             public int InstructionCount = 10;
-            public bool HasEH;
-            public bool IsStateMachine;
-            public bool IsOpenGeneric;
-            public bool IsCctor;
-            public bool IsConstructor;
-            public bool IsAbstract;
-            public bool IsPInvoke;
-            public bool HasCalliOrJmp;
-            public bool IsInjectedHelper;
-            public bool HasCriticalAttr;
-            public bool HasHotPathAttr;
-            public bool IsPublic;
-            public bool IsExported;
+            public bool HasEH { get; set; }
+            public bool IsStateMachine { get; set; }
+            public bool IsOpenGeneric { get; set; }
+            public bool IsCctor { get; set; }
+            public bool IsConstructor { get; set; }
+            public bool IsAbstract { get; set; }
+            public bool IsPInvoke { get; set; }
+            public bool HasCalliOrJmp { get; set; }
+            public bool IsInjectedHelper { get; set; }
+            public bool HasCriticalAttr { get; set; }
+            public bool HasHotPathAttr { get; set; }
+            public bool IsPublic { get; set; }
+            public bool IsExported { get; set; }
 
             public SimMethod(string name) { FullName = name; }
         }
@@ -125,6 +125,11 @@ namespace Confuser.Testing
         static KoiSelectionReport RunSelection(List<SimMethod> candidates, KoiSelectionOptions opts)
         {
             var report = new KoiSelectionReport { Module = "Test", SelectionMode = opts.Mode.ToString() };
+            if (opts.Mode == KoiSelectionMode.Off)
+            {
+                report.Status = "NoCandidates";
+                return report;
+            }
             var planned = new List<SimMethod>();
 
             foreach (var m in candidates)
@@ -209,7 +214,7 @@ namespace Confuser.Testing
             // Non-targeted methods are simply not in the candidate list
             var candidates = new List<SimMethod> { new SimMethod("T.Targeted") };
             var report = RunSelection(candidates, new KoiSelectionOptions());
-            Assert(report.Methods.All(m => m.FullName == "T.Targeted"), "Only targeted present");
+            Assert(report.Methods.All(m => m.Method == "T.Targeted"), "Only targeted present");
         }
 
         static void TestCalliJmpRejected()
@@ -253,10 +258,12 @@ namespace Confuser.Testing
         {
             var opts = new KoiSelectionOptions { Mode = KoiSelectionMode.Policy, MinimumScore = 80 };
             var good = new SimMethod("T.Good") { InstructionCount = 100, IsPublic = true, HasCriticalAttr = true };
-            Assert(Analyze(good, opts).IsSupported, "Critical+public → score 130 ≥ 80 → retained");
+            var goodReport = RunSelection(new List<SimMethod> { good }, opts);
+            Assert(goodReport.Methods[0].Status == "Registered", "Critical+public → score 130 ≥ 80 → retained");
 
             var weak = new SimMethod("T.Weak") { InstructionCount = 5, IsPublic = false };
-            Assert(!Analyze(weak, opts).IsSupported, "No score boost → rejected");
+            var weakReport = RunSelection(new List<SimMethod> { weak }, opts);
+            Assert(weakReport.Methods[0].Status == "Skipped", "No score boost → rejected");
         }
 
         static void TestHotPathExcluded()

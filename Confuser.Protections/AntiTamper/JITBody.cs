@@ -47,47 +47,51 @@ namespace Confuser.Protections.AntiTamper {
 			return GetFileLength();
 		}
 
-		public void WriteTo(BinaryWriter writer) {
-			writer.Write((uint)(Body.Length >> 2));
-			writer.Write(Body);
+		public uint CalculateAlignment() {
+			return 0;
+		}
+
+		public void WriteTo(DataWriter writer) {
+			writer.WriteUInt32((uint)(Body.Length >> 2));
+			writer.WriteBytes(Body);
 		}
 
 		public void Serialize(uint token, uint key, byte[] fieldLayout) {
 			using (var ms = new MemoryStream()) {
-				var writer = new BinaryWriter(ms);
+				var writer = new DataWriter(ms);
 				foreach (byte i in fieldLayout)
 					switch (i) {
 						case 0:
-							writer.Write((uint)ILCode.Length);
+							writer.WriteUInt32((uint)ILCode.Length);
 							break;
 						case 1:
-							writer.Write(MaxStack);
+							writer.WriteUInt32(MaxStack);
 							break;
 						case 2:
-							writer.Write((uint)EHs.Length);
+							writer.WriteUInt32((uint)EHs.Length);
 							break;
 						case 3:
-							writer.Write((uint)LocalVars.Length);
+							writer.WriteUInt32((uint)LocalVars.Length);
 							break;
 						case 4:
-							writer.Write(Options);
+							writer.WriteUInt32(Options);
 							break;
 						case 5:
-							writer.Write(MulSeed);
+							writer.WriteUInt32(MulSeed);
 							break;
 					}
 
-				writer.Write(ILCode);
-				writer.Write(LocalVars);
+				writer.WriteBytes(ILCode);
+				writer.WriteBytes(LocalVars);
 				foreach (JITEHClause clause in EHs) {
-					writer.Write(clause.Flags);
-					writer.Write(clause.TryOffset);
-					writer.Write(clause.TryLength);
-					writer.Write(clause.HandlerOffset);
-					writer.Write(clause.HandlerLength);
-					writer.Write(clause.ClassTokenOrFilterOffset);
+					writer.WriteUInt32(clause.Flags);
+					writer.WriteUInt32(clause.TryOffset);
+					writer.WriteUInt32(clause.TryLength);
+					writer.WriteUInt32(clause.HandlerOffset);
+					writer.WriteUInt32(clause.HandlerLength);
+					writer.WriteUInt32(clause.ClassTokenOrFilterOffset);
 				}
-				writer.WriteZeros(4 - ((int)ms.Length & 3)); // pad to 4 bytes
+				writer.WriteZeroes(4 - ((int)ms.Length & 3)); // pad to 4 bytes
 				Body = ms.ToArray();
 			}
 			Debug.Assert(Body.Length % 4 == 0);
@@ -110,9 +114,9 @@ namespace Confuser.Protections.AntiTamper {
 		readonly CilBody body;
 		readonly JITMethodBody jitBody;
 		readonly bool keepMaxStack;
-		readonly MetaData metadata;
+		readonly Metadata metadata;
 
-		public JITMethodBodyWriter(MetaData md, CilBody body, JITMethodBody jitBody, uint mulSeed, bool keepMaxStack) :
+		public JITMethodBodyWriter(Metadata md, CilBody body, JITMethodBody jitBody, uint mulSeed, bool keepMaxStack) :
 			base(body.Instructions, body.ExceptionHandlers) {
 			metadata = md;
 			this.body = body;
@@ -136,11 +140,11 @@ namespace Confuser.Protections.AntiTamper {
 			else
 				jitBody.LocalVars = new byte[0];
 
-			using (var ms = new MemoryStream()) {
-				uint _codeSize = WriteInstructions(new BinaryWriter(ms));
-				Debug.Assert(codeSize == _codeSize);
-				jitBody.ILCode = ms.ToArray();
-			}
+			var newCode = new byte[codeSize];
+			var writer = new ArrayWriter(newCode);
+			uint writtenCodeSize = WriteInstructions(ref writer);
+			Debug.Assert(codeSize == writtenCodeSize);
+			jitBody.ILCode = newCode;
 
 			jitBody.EHs = new JITEHClause[exceptionHandlers.Count];
 			if (exceptionHandlers.Count > 0) {
@@ -173,28 +177,28 @@ namespace Confuser.Protections.AntiTamper {
 			}
 		}
 
-		protected override void WriteInlineField(BinaryWriter writer, Instruction instr) {
-			writer.Write(metadata.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineField(ref ArrayWriter writer, Instruction instr) {
+			writer.WriteUInt32(metadata.GetToken(instr.Operand).Raw);
 		}
 
-		protected override void WriteInlineMethod(BinaryWriter writer, Instruction instr) {
-			writer.Write(metadata.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineMethod(ref ArrayWriter writer, Instruction instr) {
+			writer.WriteUInt32(metadata.GetToken(instr.Operand).Raw);
 		}
 
-		protected override void WriteInlineSig(BinaryWriter writer, Instruction instr) {
-			writer.Write(metadata.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineSig(ref ArrayWriter writer, Instruction instr) {
+			writer.WriteUInt32(metadata.GetToken(instr.Operand).Raw);
 		}
 
-		protected override void WriteInlineString(BinaryWriter writer, Instruction instr) {
-			writer.Write(metadata.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineString(ref ArrayWriter writer, Instruction instr) {
+			writer.WriteUInt32(metadata.GetToken(instr.Operand).Raw);
 		}
 
-		protected override void WriteInlineTok(BinaryWriter writer, Instruction instr) {
-			writer.Write(metadata.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineTok(ref ArrayWriter writer, Instruction instr) {
+			writer.WriteUInt32(metadata.GetToken(instr.Operand).Raw);
 		}
 
-		protected override void WriteInlineType(BinaryWriter writer, Instruction instr) {
-			writer.Write(metadata.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineType(ref ArrayWriter writer, Instruction instr) {
+			writer.WriteUInt32(metadata.GetToken(instr.Operand).Raw);
 		}
 	}
 
@@ -222,14 +226,18 @@ namespace Confuser.Protections.AntiTamper {
 			return GetFileLength();
 		}
 
-		public void WriteTo(BinaryWriter writer) {
+		public uint CalculateAlignment() {
+			return 0;
+		}
+
+		public void WriteTo(DataWriter writer) {
 			uint length = GetFileLength() - 4; // minus length field
-			writer.Write((uint)bodies.Count);
+			writer.WriteUInt32((uint)bodies.Count);
 			foreach (var entry in bodies.OrderBy(entry => entry.Key)) {
-				writer.Write(entry.Key);
+				writer.WriteUInt32(entry.Key);
 				Debug.Assert(entry.Value != null);
 				Debug.Assert((length + entry.Value.Offset) % 4 == 0);
-				writer.Write((length + entry.Value.Offset) >> 2);
+				writer.WriteUInt32((length + entry.Value.Offset) >> 2);
 			}
 		}
 

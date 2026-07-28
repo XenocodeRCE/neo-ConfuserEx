@@ -93,8 +93,8 @@ namespace Confuser.Protections.Compress {
 						// Add key signature
 						var writer = (ModuleWriterBase)sender;
 						var prot = (StubProtection)Parent;
-						uint blob = writer.MetaData.BlobHeap.Add(prot.ctx.KeySig);
-						uint rid = writer.MetaData.TablesHeap.StandAloneSigTable.Add(new RawStandAloneSigRow(blob));
+						uint blob = writer.Metadata.BlobHeap.Add(prot.ctx.KeySig);
+						uint rid = writer.Metadata.TablesHeap.StandAloneSigTable.Add(new RawStandAloneSigRow(blob));
 						Debug.Assert((0x11000000 | rid) == prot.ctx.KeyToken);
 
 						if (prot.ctx.CompatMode)
@@ -102,12 +102,12 @@ namespace Confuser.Protections.Compress {
 
 						// Add File reference
 						byte[] hash = SHA1.Create().ComputeHash(prot.ctx.OriginModule);
-						uint hashBlob = writer.MetaData.BlobHeap.Add(hash);
+						uint hashBlob = writer.Metadata.BlobHeap.Add(hash);
 
-						MDTable<RawFileRow> fileTbl = writer.MetaData.TablesHeap.FileTable;
+						MDTable<RawFileRow> fileTbl = writer.Metadata.TablesHeap.FileTable;
 						uint fileRid = fileTbl.Add(new RawFileRow(
-							                           (uint)FileAttributes.ContainsMetaData,
-							                           writer.MetaData.StringsHeap.Add("koi"),
+							                           (uint)dnlib.DotNet.FileAttributes.ContainsMetadata,
+							                           writer.Metadata.StringsHeap.Add("koi"),
 							                           hashBlob));
 					}
 				};

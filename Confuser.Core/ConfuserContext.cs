@@ -48,7 +48,14 @@ namespace Confuser.Core {
 		///     Gets the assembly resolver.
 		/// </summary>
 		/// <value>The assembly resolver.</value>
-		public AssemblyResolver Resolver { get; internal set; }
+		public IAssemblyResolver Resolver {
+			get { return InternalResolver; }
+		}
+
+		/// <summary>
+		///     Gets or sets the resolver implementation used internally.
+		/// </summary>
+		internal ConfuserAssemblyResolver InternalResolver { get; set; }
 
 		/// <summary>
 		///     Gets the modules being protected.
@@ -164,18 +171,21 @@ namespace Confuser.Core {
 		public NativeModuleWriterOptions RequestNative() {
 			if (CurrentModule == null)
 				return null;
-			if (CurrentModuleWriterOptions == null)
-				CurrentModuleWriterOptions = new NativeModuleWriterOptions(CurrentModule);
+			if (CurrentModuleWriterOptions == null) {
+				CurrentModuleWriterOptions = new NativeModuleWriterOptions(CurrentModule, false);
+				CurrentModuleWriterListener?.Attach(CurrentModuleWriterOptions);
+			}
 
 			if (CurrentModuleWriterOptions is NativeModuleWriterOptions)
 				return (NativeModuleWriterOptions)CurrentModuleWriterOptions;
-			var newOptions = new NativeModuleWriterOptions(CurrentModule, CurrentModuleWriterOptions.Listener);
+			var newOptions = new NativeModuleWriterOptions(CurrentModule, false);
+			CurrentModuleWriterListener?.Attach(newOptions);
 			// Clone the current options to the new options
 			newOptions.AddCheckSum = CurrentModuleWriterOptions.AddCheckSum;
 			newOptions.Cor20HeaderOptions = CurrentModuleWriterOptions.Cor20HeaderOptions;
 			newOptions.Logger = CurrentModuleWriterOptions.Logger;
-			newOptions.MetaDataLogger = CurrentModuleWriterOptions.MetaDataLogger;
-			newOptions.MetaDataOptions = CurrentModuleWriterOptions.MetaDataOptions;
+			newOptions.MetadataLogger = CurrentModuleWriterOptions.MetadataLogger;
+			newOptions.MetadataOptions = CurrentModuleWriterOptions.MetadataOptions;
 			newOptions.ModuleKind = CurrentModuleWriterOptions.ModuleKind;
 			newOptions.PEHeadersOptions = CurrentModuleWriterOptions.PEHeadersOptions;
 			newOptions.ShareMethodBodies = CurrentModuleWriterOptions.ShareMethodBodies;

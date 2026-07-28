@@ -35,7 +35,10 @@ packages/
 gh-pages/
 GlobalAssemblyInfo.cs
 /Build/*.zip
-!Build/7z.exe
+/artifacts/
+/tests/ModernNet/modern-parser-test/
+/tests/ModernNet/net*.0/
+/tests/ModernNet/protected*/
 .vs/Confuser2/v15/Server/sqlite3/db.lock
 .vs/Confuser2/v15/Server/sqlite3/storage.ide
 .vs/Confuser2/v15/Server/sqlite3/storage.ide-shm

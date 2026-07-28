@@ -69,7 +69,6 @@ namespace Confuser.Protections.TypeScramble.Scrambler {
         }
 
         public GenericInstSig CreateGenericTypeSig(ScannedItem from) {
-            return new GenericInstSig(GetTarget(), TrueTypes.Count);
             if (from == null) {
                 return new GenericInstSig(GetTarget(), TrueTypes.ToArray());
             } else {

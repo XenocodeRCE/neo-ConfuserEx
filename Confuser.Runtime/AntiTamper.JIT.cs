@@ -80,7 +80,7 @@ namespace Confuser.Runtime {
 				ver5 = Environment.Version.Revision > 17020;
 			}
 			else
-				moduleHnd = *(IntPtr*)(&hnd);
+				moduleHnd = Unsafe.As<ModuleHandle, IntPtr>(ref hnd);
 
 			Hook();
 		}

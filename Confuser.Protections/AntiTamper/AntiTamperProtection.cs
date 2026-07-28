@@ -78,7 +78,7 @@ namespace Confuser.Protections {
 						modeHandler = new JITMode();
 						break;
 					default:
-						throw new UnreachableException();
+						throw new Confuser.Core.UnreachableException();
 				}
 				modeHandler.HandleInject((AntiTamperProtection)Parent, context, parameters);
 				context.Annotations.Set(context.CurrentModule, HandlerKey, modeHandler);

@@ -8,7 +8,7 @@ using System.Windows.Input;
 using System.Xml;
 using Confuser.Core;
 using Confuser.Core.Project;
-using GalaSoft.MvvmLight.Command;
+using ConfuserEx.Commanding;
 using Ookii.Dialogs.Wpf;
 
 namespace ConfuserEx.ViewModel {
